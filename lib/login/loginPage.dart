@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import '../main.dart';
 import 'signupPage.dart';
 import 'api_service.dart';
 import 'findIdPage.dart';

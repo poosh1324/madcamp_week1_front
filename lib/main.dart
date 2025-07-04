@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 
-import 'loginPage.dart';
-import 'tab1.dart';
-import 'tab2.dart';
-import 'tab3.dart';
+import 'login/loginPage.dart';
+import 'board/tab1.dart';
+import 'login/tab2.dart';
+import 'login/tab3.dart';
 
 void main() {
   runApp(const MyApp());

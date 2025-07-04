@@ -1,11 +1,11 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/foundation.dart'; // debugPrint 사용을 위해 추가
 
 class ApiService {
   // 백엔드 서버 URL (실제 서버 주소로 변경하세요)
-  static const String baseUrl = 'http://192.249.29.78:4000';
-//   static const String baseUrl = 'http://localhost:4000';
+  static const String baseUrl = 'http://localhost:4000';
 //   static const String baseUrl = 'http://143.248.163.115:4000';
 
   // JSON 응답인지 확인하는 도우미 함수
@@ -63,6 +63,7 @@ class ApiService {
         // 토큰 저장
         if (result['data']['token'] != null) {
           await saveToken(result['data']['token']);
+
         }
         
         // userId 저장
@@ -110,24 +111,42 @@ class ApiService {
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
+    
+    // 🔍 디버깅: 토큰 저장 확인
+    print("토큰: $token");
   }
 
   // 토큰 가져오기
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('auth_token');
+    final token = prefs.getString('auth_token');
+    
+    // 🔍 디버깅: 토큰 조회 결과
+    if (token != null) {
+      print("토큰: $token");
+    } else {
+      print("❌ 토큰 없음");
+    }
+    
+    return token;
   }
 
   // 토큰 삭제 (로그아웃)
   static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('auth_token');
+    
+    // 🔍 디버깅: 토큰 삭제 확인
+    print("🗑️ 토큰 삭제됨");
   }
 
   // 완전 로그아웃 (토큰 + userId 모두 삭제)
   static Future<void> logout() async {
     await removeToken();
     await removeUserId();
+    
+    // 🔍 디버깅: 완전 로그아웃 확인
+    print("🚪 완전 로그아웃 완료");
   }
 
   // 아이디 찾기 API 호출
@@ -157,18 +176,33 @@ class ApiService {
   static Future<void> saveUserId(String userId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('user_id', userId);
+    
+    // 🔍 디버깅: userId 저장 확인
+    print("👤 userId 저장됨: $userId");
   }
 
   // userId 가져오기
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('user_id');
+    final userId = prefs.getString('user_id');
+    
+    // 🔍 디버깅: userId 조회 결과
+    if (userId != null) {
+      print("👤 userId 조회 성공: $userId");
+    } else {
+      print("❌ userId 없음");
+    }
+    
+    return userId;
   }
 
   // userId 삭제 (로그아웃)
   static Future<void> removeUserId() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('user_id');
+    
+    // 🔍 디버깅: userId 삭제 확인
+    print("🗑️ userId 삭제됨");
   }
 
   // 토큰 유효성 검증
