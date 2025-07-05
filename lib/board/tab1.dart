@@ -142,29 +142,8 @@ class _HomeTabState extends State<HomeTab> {
     );
 
     if (result != null) {
-      try {
-        final newPost = await BoardApiService.createPost(
-          title: result.title,
-          content: result.content,
-          division: result.division,
-        );
-        setState(() {
-          _posts.insert(0, newPost);
-          _filterPosts(_searchController.text);
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('새 게시글이 작성되었습니다!')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('게시글 작성 실패: ${e.toString()}')),
-          );
-        }
-      }
+      // 이미 WritePostPage 내부에서 createPost 및 상세 페이지 이동까지 처리함
+      _refreshPosts();
     }
   }
 

@@ -128,10 +128,9 @@ class BoardApiService {
       );
       
       if (response.statusCode == 201) {
-        // final Map<String, dynamic> data = json.decode(response.body);
-        final data = response.body;
-        print("data: ${data['postId']}");
-        return Post.fromJson(data);
+        final Map<String, dynamic> data = json.decode(response.body);
+        final String postId = data['postId'];
+        return await getPost(postId);
       } else {
         throw Exception('게시글 작성에 실패했습니다: ${response.statusCode}');
       }
