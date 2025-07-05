@@ -218,49 +218,6 @@ class ApiService {
     }
   }
 
-  // 내 정보 조회 API
-  static Future<Map<String, dynamic>> fetchUserInfo() async {
-    final token = await getToken();
-    if (token == null) {
-      return {'success': false, 'message': '토큰이 없습니다'};
-    }
-
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/user/me'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      final result = _handleResponse(response, '내 정보 조회');
-      if (result['success']) {
-        return result['data'];
-      } else {
-        return {'success': false, 'message': result['message']};
-      }
-    } catch (e) {
-      return {'success': false, 'message': '내 정보 조회 중 오류 발생: $e'};
-    }
-  }
-
-  // 사용자 정보 가져오기
-  static Future<Map<String, dynamic>> getUserInfo() async {
-    final token = await getToken();
-    if (token == null) {
-      return {'success': false, 'message': '토큰이 없습니다'};
-    }
-
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/user'),
-        headers: {'Authorization': 'Bearer $token'},
-      );
-
-      return _handleResponse(response, '사용자 정보 조회');
-    } catch (e) {
-      return {'success': false, 'message': '사용자 정보 조회 중 네트워크 오류가 발생했습니다: $e'};
-    }
-  }
-
   // 비밀번호 재설정
   static Future<Map<String, dynamic>> resetPassword(
     String username,
@@ -276,6 +233,34 @@ class ApiService {
       return _handleResponse(response, '비밀번호 재설정');
     } catch (e) {
       return {'success': false, 'message': '비밀번호 재설정 중 네트워크 오류가 발생했습니다: $e'};
+    }
+  }
+
+  // 로그인한 사용자 프로필 정보 가져오기
+  static Future<Map<String, dynamic>> fetchUserInfo() async {
+    final token = await getToken();
+    if (token == null) {
+      return {'success': false, 'message': '토큰이 없습니다', 'data': null};
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      final result = _handleResponse(response, '사용자 정보 조회');
+
+      // 디버깅 로그 출력
+      debugPrint('👤 User Info Fetched: ${result['data']}');
+
+      return result['data'];
+    } catch (e) {
+      return {
+        'success': false,
+        'message': '사용자 정보 조회 중 오류가 발생했습니다: $e',
+        'data': null,
+      };
     }
   }
 }
