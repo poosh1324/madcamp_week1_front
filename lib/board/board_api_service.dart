@@ -11,7 +11,8 @@ class BoardApiService {
   // 토큰 가져오기
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    print(prefs.getString('auth_token'));
+    return prefs.getString('auth_token');
   }
   
   // 공통 헤더 설정
@@ -111,23 +112,26 @@ class BoardApiService {
   static Future<Post> createPost({
     required String title,
     required String content,
+    required String division,
   }) async {
     try {
       final headers = await _getHeaders();
       final body = json.encode({
         'title': title,
         'content': content,
+        'division': division,
       });
-      
       final response = await http.post(
-        Uri.parse('$baseUrl/posts'),
+        Uri.parse('$baseUrl/posts/create'),
         headers: headers,
         body: body,
       );
       
       if (response.statusCode == 201) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        return Post.fromJson(data['post']);
+        // final Map<String, dynamic> data = json.decode(response.body);
+        final data = response.body;
+        print("data: ${data['postId']}");
+        return Post.fromJson(data);
       } else {
         throw Exception('게시글 작성에 실패했습니다: ${response.statusCode}');
       }

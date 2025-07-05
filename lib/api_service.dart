@@ -122,7 +122,6 @@ class ApiService {
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-
     // 🔍 디버깅: 토큰 조회 결과
     if (token != null) {
       print("토큰: $token");

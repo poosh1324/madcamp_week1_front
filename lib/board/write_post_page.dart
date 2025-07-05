@@ -43,12 +43,12 @@ class _WritePostPageState extends State<WritePostPage> {
       id: widget.post?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
       title: _titleController.text.trim(),
       content: _contentController.text.trim(),
-      author: '사용자', // 실제로는 로그인한 사용자명
+      author: "사용자명", // 실제로는 로그인한 사용자명
       createdAt: widget.post?.createdAt ?? DateTime.now(),
       views: widget.post?.views ?? 0,
     );
 
-    Navigator.pop(context, newPost);
+    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PostDetailPage(postId: newPost.id)));
   }
 
   @override

@@ -146,8 +146,8 @@ class _HomeTabState extends State<HomeTab> {
         final newPost = await BoardApiService.createPost(
           title: result.title,
           content: result.content,
+          division: result.division,
         );
-
         setState(() {
           _posts.insert(0, newPost);
           _filterPosts(_searchController.text);
