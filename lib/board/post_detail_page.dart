@@ -5,7 +5,7 @@ import 'write_post_page.dart';
 class PostDetailPage extends StatefulWidget {
   final Post post;
   final Function(Post) onPostUpdated;
-  final Function(int) onPostDeleted;
+  final Function(String) onPostDeleted;
 
   const PostDetailPage({
     super.key,
@@ -213,35 +213,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 currentPost.content,
                 style: const TextStyle(
                   fontSize: 16,
-                  height: 1.6,
+                  height: 1.5,
                 ),
               ),
             ),
             const SizedBox(height: 24),
-            
-            // 태그
-            if (currentPost.tags.isNotEmpty) ...[
-              const Text(
-                '태그',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Wrap(
-                spacing: 8,
-                runSpacing: 4,
-                children: currentPost.tags.map((tag) {
-                  return Chip(
-                    label: Text('#$tag'),
-                    backgroundColor: Colors.blue.shade50,
-                    side: BorderSide(color: Colors.blue.shade200),
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 24),
-            ],
             
             // 액션 버튼들
             Row(

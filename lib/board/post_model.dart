@@ -1,32 +1,38 @@
 class Post {
-  final int id;
+  final String id;
   final String title;
   final String content;
   final String author;
   final DateTime createdAt;
+  final int likes;
+  final int dislikes;
+  final String division;
   final int views;
-  final List<String> tags;
 
   Post({
     required this.id,
     required this.title,
-    required this.content,
     required this.author,
     required this.createdAt,
+    this.likes = 0,
+    this.dislikes = 0,
+    required this.content,
+    this.division = '',
     this.views = 0,
-    this.tags = const [],
   });
 
   // JSON에서 Post 객체 생성
   factory Post.fromJson(Map<String, dynamic> json) {
     return Post(
-      id: json['id'],
-      title: json['title'],
-      content: json['content'],
-      author: json['author'],
-      createdAt: DateTime.parse(json['createdAt']),
-      views: json['views'] ?? 0,
-      tags: List<String>.from(json['tags'] ?? []),
+      id: json['postId']?.toString() ?? json['id']?.toString() ?? '0',
+      title: json['title']?.toString() ?? '',
+      author: json['author']?.toString() ?? '',
+      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
+      likes: json['likes'] is int ? json['likes'] : (int.tryParse(json['likes']?.toString() ?? '0') ?? 0),
+      dislikes: json['dislikes'] is int ? json['dislikes'] : (int.tryParse(json['dislikes']?.toString() ?? '0') ?? 0),
+      division: json['division']?.toString() ?? '',
+      content: json['content']?.toString() ?? '',
+      views: json['views'] is int ? json['views'] : (int.tryParse(json['views']?.toString() ?? '0') ?? 0),
     );
   }
 
@@ -39,7 +45,6 @@ class Post {
       'author': author,
       'createdAt': createdAt.toIso8601String(),
       'views': views,
-      'tags': tags,
     };
   }
 
@@ -63,13 +68,12 @@ class Post {
 
   // 게시글 복사 (수정용)
   Post copyWith({
-    int? id,
+    String? id,
     String? title,
     String? content,
     String? author,
     DateTime? createdAt,
     int? views,
-    List<String>? tags,
   }) {
     return Post(
       id: id ?? this.id,
@@ -78,7 +82,6 @@ class Post {
       author: author ?? this.author,
       createdAt: createdAt ?? this.createdAt,
       views: views ?? this.views,
-      tags: tags ?? this.tags,
     );
   }
 } 
