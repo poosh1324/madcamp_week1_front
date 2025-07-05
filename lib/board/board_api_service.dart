@@ -97,8 +97,8 @@ class BoardApiService {
       
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print(data);
-        return Post.fromJson(data['post']);
+        return Post.fromJson(data);
+        
       } else {
         throw Exception('게시글을 가져오는데 실패했습니다: ${response.statusCode}');
       }

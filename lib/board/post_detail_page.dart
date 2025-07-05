@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../api_service.dart';
 import 'post_model.dart';
 import 'write_post_page.dart';
 
@@ -20,11 +22,22 @@ class PostDetailPage extends StatefulWidget {
 
 class _PostDetailPageState extends State<PostDetailPage> {
   late Post currentPost;
+  String? currentUserId;  // 현재 사용자 ID
+  bool isLoading = true;   // 로딩 상태
 
   @override
   void initState() {
     super.initState();
     currentPost = widget.post;
+    _loadCurrentUser();  // 현재 사용자 정보 로드
+    
+    // 디버깅을 위한 division 값 확인
+    print('=== Division 디버깅 ===');
+    print('division 값: "${currentPost.division}"');
+    print('division 길이: ${currentPost.division.length}');
+    print('division 타입: ${currentPost.division.runtimeType}');
+    print('division isEmpty: ${currentPost.division.isEmpty}');
+    print('====================');
     
     // 조회수 증가 (실제로는 서버에 요청)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -33,6 +46,36 @@ class _PostDetailPageState extends State<PostDetailPage> {
       });
       widget.onPostUpdated(currentPost);
     });
+  }
+
+  // 현재 사용자 ID 가져오기
+  Future<void> _loadCurrentUser() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      currentUserId = prefs.getString('user_id');
+      
+      print('=== 권한 체크 ===');
+      print('현재 사용자: $currentUserId');
+      print('작성자: ${currentPost.author}');
+      print('수정 권한: ${_canEdit()}');
+      print('================');
+      
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      print('사용자 정보 로드 실패: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
+
+  // 수정/삭제 권한 체크
+  bool _canEdit() {
+    if (currentUserId == null) return false;
+    // 간단한 비교 (실제로는 authorId와 비교해야 함)
+    return currentUserId == currentPost.author;
   }
 
   void _editPost() async {
@@ -91,41 +134,43 @@ class _PostDetailPageState extends State<PostDetailPage> {
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
         actions: [
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert),
-            onSelected: (value) {
-              switch (value) {
-                case 'edit':
-                  _editPost();
-                  break;
-                case 'delete':
-                  _deletePost();
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'edit',
-                child: Row(
-                  children: [
-                    Icon(Icons.edit),
-                    SizedBox(width: 8),
-                    Text('수정'),
-                  ],
+          // 권한 체크: 본인이 작성한 글일 때만 메뉴 표시
+          if (!isLoading && _canEdit())
+            PopupMenuButton<String>(
+              icon: const Icon(Icons.more_vert),
+              onSelected: (value) {
+                switch (value) {
+                  case 'edit':
+                    _editPost();
+                    break;
+                  case 'delete':
+                    _deletePost();
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      Icon(Icons.edit),
+                      SizedBox(width: 8),
+                      Text('수정'),
+                    ],
+                  ),
                 ),
-              ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('삭제', style: TextStyle(color: Colors.red)),
-                  ],
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('삭제', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
       body: SingleChildScrollView(
@@ -153,10 +198,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
               child: Row(
                 children: [
                   CircleAvatar(
+                    radius: 20,
                     backgroundColor: Colors.blue,
                     child: Text(
-                      currentPost.author[0].toUpperCase(),
-                      style: const TextStyle(color: Colors.white),
+                      currentPost.division,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -165,7 +215,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          currentPost.author,
+                          '${currentPost.division}반 몰입러',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -219,29 +269,49 @@ class _PostDetailPageState extends State<PostDetailPage> {
             ),
             const SizedBox(height: 24),
             
-            // 액션 버튼들
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _editPost,
-                    icon: const Icon(Icons.edit),
-                    label: const Text('수정'),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _deletePost,
-                    icon: const Icon(Icons.delete, color: Colors.red),
-                    label: const Text('삭제', style: TextStyle(color: Colors.red)),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Colors.red),
+            // 액션 버튼들 (권한이 있을 때만 표시)
+            if (!isLoading && _canEdit())
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _editPost,
+                      icon: const Icon(Icons.edit),
+                      label: const Text('수정'),
                     ),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      onPressed: _deletePost,
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      label: const Text('삭제', style: TextStyle(color: Colors.red)),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Colors.red),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            
+            // 권한이 없을 때 안내 메시지 (선택사항)
+            if (!isLoading && !_canEdit())
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(8),
                 ),
-              ],
-            ),
+                child: Text(
+                  '다른 사용자가 작성한 게시글입니다.',
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 14,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ),
           ],
         ),
       ),

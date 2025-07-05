@@ -74,6 +74,9 @@ class Post {
     String? author,
     DateTime? createdAt,
     int? views,
+    String? division,
+    int? likes,
+    int? dislikes,
   }) {
     return Post(
       id: id ?? this.id,
@@ -82,6 +85,9 @@ class Post {
       author: author ?? this.author,
       createdAt: createdAt ?? this.createdAt,
       views: views ?? this.views,
+      division: division ?? this.division,
+      likes: likes ?? this.likes,
+      dislikes: dislikes ?? this.dislikes,
     );
   }
 } 
