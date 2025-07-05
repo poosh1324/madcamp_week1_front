@@ -48,7 +48,8 @@ class _WritePostPageState extends State<WritePostPage> {
       views: widget.post?.views ?? 0,
     );
 
-    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => PostDetailPage(postId: newPost.id)));
+    // 이전 화면(tab1)으로 데이터 전달
+    Navigator.pop(context, newPost);
   }
 
   @override
