@@ -263,4 +263,56 @@ class ApiService {
       };
     }
   }
+
+  // 내가 쓴 글 가져오기
+  static Future<List<Map<String, dynamic>>> fetchMyPosts() async {
+    final token = await getToken();
+    if (token == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/posts'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('❌ fetchMyPosts 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ fetchMyPosts 오류: $e');
+      return [];
+    }
+  }
+
+  // 내가 쓴 댓글 가져오기
+  static Future<List<Map<String, dynamic>>> fetchMyComments() async {
+    final token = await getToken();
+    if (token == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/comments'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('❌ fetchMyComments 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ fetchMyComments 오류: $e');
+      return [];
+    }
+  }
 }

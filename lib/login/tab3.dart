@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../api_service.dart';
+import 'my_pages/my_comments_page.dart';
+import 'my_pages/my_posts_page.dart';
 
 // 프로필 탭 화면
 class ProfileTab extends StatelessWidget {
@@ -24,12 +26,39 @@ class ProfileTab extends StatelessWidget {
                 const SizedBox(height: 20),
                 Text(
                   data['nickname'] ?? 'Unknown User',
-                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Text('실명: ${data['realName'] ?? 'N/A'}'),
                 Text('ID: ${data['username'] ?? 'N/A'}'),
                 Text('소속: ${data['division'] ?? 'N/A'}'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyPostsPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('내가 쓴 글 보기'),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                                        Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MyCommentsPage(),
+                      ),
+                    );
+                  },
+                  child: const Text('내가 쓴 댓글 보기'),
+                ),
               ],
             ),
           );
