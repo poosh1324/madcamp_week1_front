@@ -257,9 +257,7 @@ class BoardApiService {
       throw Exception('네트워크 오류: $e');
     }
   }
-<<<<<<< HEAD
-}
-=======
+
 
   // === 댓글 관련 API 함수들 ===
 
@@ -414,4 +412,3 @@ class BoardApiService {
     }
   }
 } 
->>>>>>> b776e6e (댓글, 대댓글 ui만 완성)
