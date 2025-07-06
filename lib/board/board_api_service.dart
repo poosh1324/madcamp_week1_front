@@ -271,7 +271,8 @@ class BoardApiService {
 
       if (response.statusCode == 200) {
         print('댓글 응답 전체: ${response.body}');
-        final List<dynamic> commentsJson = json.decode(response.body);
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> commentsJson = data['comments'];
         return commentsJson.map((json) => Comment.fromJson(json)).toList();
       } else {
         throw Exception('댓글 목록을 가져오는데 실패했습니다: ${response.statusCode}');
@@ -300,7 +301,7 @@ class BoardApiService {
         body: body,
       );
 
-      print('댓글 작성 응답::::::: ${response.body}');
+      // print('댓글 작성 응답::::::: ${response.body}');
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Comment.fromJson(data);
