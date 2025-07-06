@@ -2,10 +2,31 @@ import 'package:flutter/material.dart';
 import 'gallery_detail_page.dart';
 import 'gallery_api_service.dart';
 
-class GalleryDivisionPage extends StatelessWidget {
+class GalleryDivisionPage extends StatefulWidget {
   final String division;
 
   const GalleryDivisionPage({super.key, required this.division});
+
+  @override
+  State<GalleryDivisionPage> createState() => _GalleryDivisionPageState();
+}
+
+class _GalleryDivisionPageState extends State<GalleryDivisionPage> {
+  late Future<List<String>> _imageUrls;
+  late final String division;
+
+  @override
+  void initState() {
+    super.initState();
+    division = widget.division;
+    _imageUrls = GalleryApiService.fetchImages(division);
+  }
+
+  void _reloadImages() {
+    setState(() {
+      _imageUrls = GalleryApiService.fetchImages(division);
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,7 +35,7 @@ class GalleryDivisionPage extends StatelessWidget {
         Scaffold(
           appBar: AppBar(title: Text('$division 분반 갤러리')),
           body: FutureBuilder<List<String>>(
-            future: GalleryApiService.fetchImages(division),
+            future: _imageUrls,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -58,6 +79,7 @@ class GalleryDivisionPage extends StatelessWidget {
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('업로드 성공!')));
+                _reloadImages();
               } catch (e) {
                 ScaffoldMessenger.of(
                   context,

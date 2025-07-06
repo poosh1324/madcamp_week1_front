@@ -71,7 +71,7 @@ class GalleryApiService {
   static Future<List<String>> fetchImagePreviews(String division) async {
     try {
       final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/gallery/preview/$division'),
+        Uri.parse('${ApiService.baseUrl}/gallery/$division'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
