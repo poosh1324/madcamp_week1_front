@@ -258,7 +258,6 @@ class BoardApiService {
     }
   }
 
-
   // === 댓글 관련 API 함수들 ===
 
   // 9. 특정 게시글의 댓글 목록 조회 (대댓글 포함)
@@ -266,11 +265,12 @@ class BoardApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/posts/$postId/comments'),
+        Uri.parse('${ApiService.baseUrl}/posts/$postId/comments'),
         headers: headers,
       );
-      
+
       if (response.statusCode == 200) {
+        print('댓글 응답 전체: ${response.body}');
         final List<dynamic> commentsJson = json.decode(response.body);
         return commentsJson.map((json) => Comment.fromJson(json)).toList();
       } else {
@@ -285,7 +285,7 @@ class BoardApiService {
   static Future<Comment> createComment({
     required String postId,
     required String content,
-    String? parentId,  // 대댓글인 경우 부모 댓글 ID
+    String? parentId, // 대댓글인 경우 부모 댓글 ID
   }) async {
     try {
       final headers = await _getHeaders();
@@ -293,13 +293,13 @@ class BoardApiService {
         'content': content,
         if (parentId != null) 'parentId': parentId,
       });
-      
+
       final response = await http.post(
-        Uri.parse('$baseUrl/posts/$postId/comments'),
+        Uri.parse('${ApiService.baseUrl}/posts/$postId/comments'),
         headers: headers,
         body: body,
       );
-      
+
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Comment.fromJson(data['comment']);
@@ -318,16 +318,14 @@ class BoardApiService {
   }) async {
     try {
       final headers = await _getHeaders();
-      final body = json.encode({
-        'content': content,
-      });
-      
+      final body = json.encode({'content': content});
+
       final response = await http.put(
-        Uri.parse('$baseUrl/comments/$commentId'),
+        Uri.parse('${ApiService.baseUrl}/comments/$commentId'),
         headers: headers,
         body: body,
       );
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Comment.fromJson(data['comment']);
@@ -344,10 +342,10 @@ class BoardApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.delete(
-        Uri.parse('$baseUrl/comments/$commentId'),
+        Uri.parse('${ApiService.baseUrl}/comments/$commentId'),
         headers: headers,
       );
-      
+
       if (response.statusCode != 200) {
         throw Exception('댓글 삭제에 실패했습니다: ${response.statusCode}');
       }
@@ -363,16 +361,14 @@ class BoardApiService {
   }) async {
     try {
       final headers = await _getHeaders();
-      final body = json.encode({
-        'isLike': isLike,
-      });
-      
+      final body = json.encode({'isLike': isLike});
+
       final response = await http.post(
-        Uri.parse('$baseUrl/comments/$commentId/like'),
+        Uri.parse('${ApiService.baseUrl}/comments/$commentId/like'),
         headers: headers,
         body: body,
       );
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Comment.fromJson(data['comment']);
@@ -391,16 +387,14 @@ class BoardApiService {
   }) async {
     try {
       final headers = await _getHeaders();
-      final body = json.encode({
-        'content': content,
-      });
-      
+      final body = json.encode({'content': content});
+
       final response = await http.post(
-        Uri.parse('$baseUrl/comments/$commentId/replies'),
+        Uri.parse('${ApiService.baseUrl}/comments/$commentId/replies'),
         headers: headers,
         body: body,
       );
-      
+
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Comment.fromJson(data['reply']);
@@ -411,4 +405,4 @@ class BoardApiService {
       throw Exception('네트워크 오류: $e');
     }
   }
-} 
+}
