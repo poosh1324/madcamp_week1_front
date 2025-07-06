@@ -289,10 +289,11 @@ class BoardApiService {
     String? parentId, // 대댓글인 경우 부모 댓글 ID
   }) async {
     try {
+      print('parentId: $parentId');
       final headers = await _getHeaders();
       final body = json.encode({
         'content': content,
-        if (parentId != null) 'parentId': parentId,
+        if (parentId != null) 'parentCommentId': parentId,
       });
 
       final response = await http.post(

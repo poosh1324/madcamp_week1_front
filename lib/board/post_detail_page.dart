@@ -185,6 +185,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
 
     try {
+      print('대댓글 커멘트 아이디: $_replyingToCommentId');
       if (_replyingToCommentId != null) {
         // 대댓글 작성
         final newReply = await BoardApiService.createComment(
