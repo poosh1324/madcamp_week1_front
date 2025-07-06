@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'login/loginPage.dart';
 import 'board/tab1.dart';
 import 'login/tab2.dart';
-import 'login/tab3.dart';
+import 'mypage/tab3.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,8 +25,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
-
 class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
@@ -34,7 +32,8 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateMixin {
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
   late TabController _tabController;
 
   @override
@@ -72,11 +71,7 @@ class _MyHomePageState extends State<MyHomePage> with SingleTickerProviderStateM
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [
-          HomeTab(),
-          SearchTab(),
-          ProfileTab(),
-        ],
+        children: const [HomeTab(), SearchTab(), ProfileTab()],
       ),
     );
   }
