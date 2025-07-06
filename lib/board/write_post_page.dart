@@ -41,31 +41,46 @@ class _WritePostPageState extends State<WritePostPage> {
       ).showSnackBar(const SnackBar(content: Text('제목과 내용을 입력해주세요!')));
       return;
     }
+    if (widget.post == null) {
+      try {
+        final createdPost = await BoardApiService.createPost(
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+          division: 'all', // 혹은 필요시 실제 division 값으로 대체
+        );
 
-    try {
-      final createdPost = await BoardApiService.createPost(
-        title: _titleController.text.trim(),
-        content: _contentController.text.trim(),
-        division: 'all', // 혹은 필요시 실제 division 값으로 대체
-      );
-
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PostDetailPage(
-            post: createdPost,
-            onPostUpdated: (_) {},
-            onPostDeleted: (_) {},
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PostDetailPage(
+              post: createdPost,
+              onPostUpdated: (_) {},
+              onPostDeleted: (_) {},
+            ),
           ),
-        ),
-      );
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(SnackBar(content: Text('게시글 작성 실패: $e')));
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('게시글 작성 실패: $e')));
+      }
     }
+    else {
+      try {
+        final updatedPost = await BoardApiService.updatePost(
+          postId: widget.post!.id,
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('게시글 수정 실패: $e')));
+      }
+    } 
   }
 
   @override

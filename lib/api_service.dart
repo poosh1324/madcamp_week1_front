@@ -5,9 +5,9 @@ import 'package:flutter/foundation.dart'; // debugPrint 사용을 위해 추가
 
 class ApiService {
   // 백엔드 서버 URL (실제 서버 주소로 변경하세요)
-  static const String baseUrl = 'http://localhost:4000';
+  // static const String baseUrl = 'http://localhost:4000';
   //   static const String baseUrl = 'http://143.248.163.115:4000';
-  //   static const String baseUrl = 'http://192.249.29.78:4000';
+    static const String baseUrl = 'http://192.249.29.78:4000';
   // static const String baseUrl =
   //     'https://madcampweek1back-production.up.railway.app';
 
@@ -63,7 +63,7 @@ class ApiService {
       );
 
       final result = _handleResponse(response, '로그인');
-
+      print("🦁: ${result}");
       if (result['success'] && result['data'] != null) {
         // 토큰 저장
         if (result['data']['token'] != null) {
@@ -71,8 +71,8 @@ class ApiService {
         }
 
         // userId 저장
-        if (result['data']['userId'] != null) {
-          await saveUserId(result['data']['userId'].toString());
+        if (result['data']['username'] != null) {
+          await saveUserId(result['data']['username'].toString());
         }
       }
 
@@ -113,7 +113,6 @@ class ApiService {
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
-
     // 🔍 디버깅: 토큰 저장 확인
     print("토큰: $token");
   }
@@ -180,7 +179,7 @@ class ApiService {
   // userId 저장
   static Future<void> saveUserId(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_id', userId);
+    await prefs.setString('username', userId);
 
     // 🔍 디버깅: userId 저장 확인
     print("👤 userId 저장됨: $userId");
@@ -189,7 +188,7 @@ class ApiService {
   // userId 가져오기
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('user_id');
+    final userId = prefs.getString('username');
 
     // 🔍 디버깅: userId 조회 결과
     if (userId != null) {
@@ -204,7 +203,7 @@ class ApiService {
   // userId 삭제 (로그아웃)
   static Future<void> removeUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_id');
+    await prefs.remove('username');
 
     // 🔍 디버깅: userId 삭제 확인
     print("🗑️ userId 삭제됨");

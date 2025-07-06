@@ -225,7 +225,6 @@ class _HomeTabState extends State<HomeTab> {
   void _viewPost(Post post) async {
     try {
       final updatedPost = await BoardApiService.getPost(post.id);
-
       if (mounted) {
         await Navigator.push<Post?>(
           context,

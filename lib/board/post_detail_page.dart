@@ -39,6 +39,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void initState() {
     super.initState();
     currentPost = widget.post;
+    print("🏛️currentPost: ${currentPost.author}");
 
     _loadCurrentUser(); // 현재 사용자 정보 로드
     _loadComments(); // 댓글 목록 로드
@@ -50,7 +51,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     print('division 타입: ${currentPost.division.runtimeType}');
     print('division isEmpty: ${currentPost.division.isEmpty}');
     print('====================');
-    print('📦 widget.post.id: ${widget.post.id}');
+    print('📦 widget.post.author: ${widget.post.author}');
     print('📦 widget.post.title: ${widget.post.title}');
 
     // 조회수 증가 (실제로는 서버에 요청)
@@ -73,7 +74,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Future<void> _loadCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      currentUserId = prefs.getString('user_id');
+      
+      // final keys = prefs.getKeys();
+      // print("키스 걀긴다~~~");
+      // for (final key in keys){
+      //   print('$key');
+      // }
+      currentUserId = prefs.getString('username');
+
 
       print('=== 권한 체크 ===');
       print('현재 사용자: $currentUserId');
@@ -101,6 +109,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // 댓글 권한 체크
   bool _canEditComment(Comment comment) {
+    print("댓글 권한 체크, currentUserId: $currentUserId, comment.author: ${comment.author}");
     if (currentUserId == null) return false;
     return currentUserId == comment.author;
   }
