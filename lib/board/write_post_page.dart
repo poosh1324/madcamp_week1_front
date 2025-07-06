@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'post_model.dart';
 import 'post_detail_page.dart';
-import 'tab1.dart';
 import 'board_api_service.dart';
 
 class WritePostPage extends StatefulWidget {

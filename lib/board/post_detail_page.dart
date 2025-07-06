@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../api_service.dart';
 import 'post_model.dart';
 import 'write_post_page.dart';
 
@@ -22,15 +21,15 @@ class PostDetailPage extends StatefulWidget {
 
 class _PostDetailPageState extends State<PostDetailPage> {
   late Post currentPost;
-  String? currentUserId;  // 현재 사용자 ID
-  bool isLoading = true;   // 로딩 상태
+  String? currentUserId; // 현재 사용자 ID
+  bool isLoading = true; // 로딩 상태
 
   @override
   void initState() {
     super.initState();
     currentPost = widget.post;
-    _loadCurrentUser();  // 현재 사용자 정보 로드
-    
+    _loadCurrentUser(); // 현재 사용자 정보 로드
+
     // 디버깅을 위한 division 값 확인
     print('=== Division 디버깅 ===');
     print('division 값: "${currentPost.division}"');
@@ -38,7 +37,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
     print('division 타입: ${currentPost.division.runtimeType}');
     print('division isEmpty: ${currentPost.division.isEmpty}');
     print('====================');
-    
+
     // 조회수 증가 (실제로는 서버에 요청)
     WidgetsBinding.instance.addPostFrameCallback((_) {
       setState(() {
@@ -53,13 +52,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
     try {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('user_id');
-      
+
       print('=== 권한 체크 ===');
       print('현재 사용자: $currentUserId');
       print('작성자: ${currentPost.author}');
       print('수정 권한: ${_canEdit()}');
       print('================');
-      
+
       setState(() {
         isLoading = false;
       });
@@ -81,9 +80,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void _editPost() async {
     final result = await Navigator.push<Post>(
       context,
-      MaterialPageRoute(
-        builder: (context) => WritePostPage(post: currentPost),
-      ),
+      MaterialPageRoute(builder: (context) => WritePostPage(post: currentPost)),
     );
 
     if (result != null) {
@@ -91,9 +88,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
         currentPost = result;
       });
       widget.onPostUpdated(result);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('게시글이 수정되었습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
     }
   }
 
@@ -119,9 +116,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       if (confirmed == true) {
         widget.onPostDeleted(currentPost.id);
         Navigator.pop(context);
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('게시글이 삭제되었습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('게시글이 삭제되었습니다.')));
       }
     });
   }
@@ -181,13 +178,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
             // 제목
             Text(
               currentPost.title,
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 16),
-            
+
             // 작성자 정보
             Container(
               padding: const EdgeInsets.all(12),
@@ -233,9 +227,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ),
                   Row(
                     children: [
-                      Icon(Icons.visibility, 
-                           size: 16, 
-                           color: Colors.grey.shade600),
+                      Icon(
+                        Icons.visibility,
+                        size: 16,
+                        color: Colors.grey.shade600,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         '${currentPost.views}',
@@ -250,7 +246,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // 내용
             Container(
               width: double.infinity,
@@ -261,14 +257,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
               child: Text(
                 currentPost.content,
-                style: const TextStyle(
-                  fontSize: 16,
-                  height: 1.5,
-                ),
+                style: const TextStyle(fontSize: 16, height: 1.5),
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // 액션 버튼들 (권한이 있을 때만 표시)
             if (!isLoading && _canEdit())
               Row(
@@ -285,7 +278,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     child: OutlinedButton.icon(
                       onPressed: _deletePost,
                       icon: const Icon(Icons.delete, color: Colors.red),
-                      label: const Text('삭제', style: TextStyle(color: Colors.red)),
+                      label: const Text(
+                        '삭제',
+                        style: TextStyle(color: Colors.red),
+                      ),
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: Colors.red),
                       ),
@@ -293,7 +289,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ),
                 ],
               ),
-            
+
             // 권한이 없을 때 안내 메시지 (선택사항)
             if (!isLoading && !_canEdit())
               Container(
@@ -305,10 +301,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ),
                 child: Text(
                   '다른 사용자가 작성한 게시글입니다.',
-                  style: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
                   textAlign: TextAlign.center,
                 ),
               ),
@@ -317,4 +310,4 @@ class _PostDetailPageState extends State<PostDetailPage> {
       ),
     );
   }
-} 
+}
