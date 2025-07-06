@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:test_madcamp/board/board_api_service.dart';
 import '../../api_service.dart';
+import '../../board/post_detail_page.dart';
 
 class MyCommentsPage extends StatelessWidget {
   const MyCommentsPage({super.key});
@@ -30,8 +32,33 @@ class MyCommentsPage extends StatelessWidget {
                   '게시글: ${comment['postTitle']} | 좋아요: ${comment['likes']} | 싫어요: ${comment['dislikes']}',
                 ),
                 trailing: const Icon(Icons.comment),
-                onTap: () {
-                  // TODO: navigate to the original post
+                onTap: () async {
+                  try {
+                    final post = await BoardApiService.getPost(
+                      comment['postId'],
+                    );
+                    if (context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PostDetailPage(
+                            post: post,
+                            onPostUpdated: (_) {},
+                            onPostDeleted: (_) {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('Failed to load post: $e');
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('게시글을 불러오는 데 실패했습니다: $e')),
+                      );
+                    }
+                  }
                 },
               );
             },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../api_service.dart';
+import '../../board/board_api_service.dart';
+import '../../board/post_detail_page.dart';
 
 class MyPostsPage extends StatelessWidget {
   const MyPostsPage({super.key});
@@ -30,8 +32,29 @@ class MyPostsPage extends StatelessWidget {
                   '분반: ${post['division']} | 좋아요: ${post['likes']} | 댓글: ${post['commentCount']}',
                 ),
                 trailing: const Icon(Icons.article),
-                onTap: () {
-                  // TODO: navigate to post detail
+                onTap: () async {
+                  try {
+                    final updatedPost = await BoardApiService.getPost(
+                      post['postId'],
+                    );
+                    if (context.mounted) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => PostDetailPage(
+                            post: updatedPost,
+                            onPostUpdated: (_) {},
+                            onPostDeleted: (_) {},
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('게시글 불러오기 오류: $e');
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('게시글을 불러오는 데 실패했습니다: $e')),
+                    );
+                  }
                 },
               );
             },
