@@ -1,50 +1,55 @@
-class Post {
+class Comment {
   final String id;
-  final String title;
+  final String postId;
   final String content;
   final String author;
+  final String division;
   final DateTime createdAt;
   final int likes;
   final int dislikes;
-  final String division;
-  final int views;
 
-  Post({
+  Comment({
     required this.id,
-    required this.title,
+    required this.postId,
+    required this.content,
     required this.author,
+    required this.division,
     required this.createdAt,
     this.likes = 0,
     this.dislikes = 0,
-    required this.content,
-    this.division = '',
-    this.views = 0,
   });
 
-  // JSON에서 Post 객체 생성
-  factory Post.fromJson(Map<String, dynamic> json) {
-    return Post(
-      id: json['postId']?.toString() ?? json['id']?.toString() ?? '0',
-      title: json['title']?.toString() ?? '',
-      author: json['author']?.toString() ?? '',
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt'].toString()) : DateTime.now(),
-      likes: json['likes'] is int ? json['likes'] : (int.tryParse(json['likes']?.toString() ?? '0') ?? 0),
-      dislikes: json['dislikes'] is int ? json['dislikes'] : (int.tryParse(json['dislikes']?.toString() ?? '0') ?? 0),
-      division: json['division']?.toString() ?? '',
+  // JSON에서 Comment 객체 생성
+  factory Comment.fromJson(Map<String, dynamic> json) {
+    return Comment(
+      id: json['commentId']?.toString() ?? json['id']?.toString() ?? '0',
+      postId: json['postId']?.toString() ?? '0',
       content: json['content']?.toString() ?? '',
-      views: json['views'] is int ? json['views'] : (int.tryParse(json['views']?.toString() ?? '0') ?? 0),
+      author: json['author']?.toString() ?? '',
+      division: json['division']?.toString() ?? '',
+      createdAt: json['createdAt'] != null 
+          ? DateTime.parse(json['createdAt'].toString()) 
+          : DateTime.now(),
+      likes: json['likes'] is int 
+          ? json['likes'] 
+          : (int.tryParse(json['likes']?.toString() ?? '0') ?? 0),
+      dislikes: json['dislikes'] is int 
+          ? json['dislikes'] 
+          : (int.tryParse(json['dislikes']?.toString() ?? '0') ?? 0),
     );
   }
 
-  // Post 객체를 JSON으로 변환
+  // Comment 객체를 JSON으로 변환
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'title': title,
+      'postId': postId,
       'content': content,
       'author': author,
+      'division': division,
       'createdAt': createdAt.toIso8601String(),
-      'views': views,
+      'likes': likes,
+      'dislikes': dislikes,
     };
   }
 
@@ -66,26 +71,24 @@ class Post {
     }
   }
 
-  // 게시글 복사 (수정용)
-  Post copyWith({
+  // 댓글 복사 (수정용)
+  Comment copyWith({
     String? id,
-    String? title,
+    String? postId,
     String? content,
     String? author,
-    DateTime? createdAt,
-    int? views,
     String? division,
+    DateTime? createdAt,
     int? likes,
     int? dislikes,
   }) {
-    return Post(
+    return Comment(
       id: id ?? this.id,
-      title: title ?? this.title,
+      postId: postId ?? this.postId,
       content: content ?? this.content,
       author: author ?? this.author,
-      createdAt: createdAt ?? this.createdAt,
-      views: views ?? this.views,
       division: division ?? this.division,
+      createdAt: createdAt ?? this.createdAt,
       likes: likes ?? this.likes,
       dislikes: dislikes ?? this.dislikes,
     );

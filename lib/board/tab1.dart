@@ -73,6 +73,7 @@ class _HomeTabState extends State<HomeTab> {
         author: '플러터러버',
         createdAt: DateTime.now().subtract(const Duration(hours: 2)),
         views: 45,
+        division: '1',
       ),
       Post(
         id: '2',
@@ -81,6 +82,7 @@ class _HomeTabState extends State<HomeTab> {
         author: '코드마스터',
         createdAt: DateTime.now().subtract(const Duration(hours: 5)),
         views: 23,
+        division: '2',
       ),
       Post(
         id: '3',
@@ -89,6 +91,7 @@ class _HomeTabState extends State<HomeTab> {
         author: '아키텍처맨',
         createdAt: DateTime.now().subtract(const Duration(days: 1)),
         views: 67,
+        division: '3',
       ),
     ];
 
@@ -139,29 +142,8 @@ class _HomeTabState extends State<HomeTab> {
     );
 
     if (result != null) {
-      try {
-        final newPost = await BoardApiService.createPost(
-          title: result.title,
-          content: result.content,
-        );
-
-        setState(() {
-          _posts.insert(0, newPost);
-          _filterPosts(_searchController.text);
-        });
-
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('새 게시글이 작성되었습니다!')),
-          );
-        }
-      } catch (e) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('게시글 작성 실패: ${e.toString()}')),
-          );
-        }
-      }
+      // 이미 WritePostPage 내부에서 createPost 및 상세 페이지 이동까지 처리함
+      _refreshPosts();
     }
   }
 

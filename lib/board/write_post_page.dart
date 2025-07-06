@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'post_model.dart';
+import 'post_detail_page.dart';
+import 'tab1.dart';
+import 'board_api_service.dart';
 
 class WritePostPage extends StatefulWidget {
   final Post? post; // 수정할 게시글 (새 글 작성 시 null)
@@ -31,24 +34,44 @@ class _WritePostPageState extends State<WritePostPage> {
     super.dispose();
   }
 
-  void _savePost() {
-    if (_titleController.text.trim().isEmpty || _contentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제목과 내용을 입력해주세요!')),
-      );
+  void _savePost() async {
+    if (_titleController.text.trim().isEmpty ||
+        _contentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제목과 내용을 입력해주세요!')));
       return;
     }
 
-    final newPost = Post(
-      id: widget.post?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text.trim(),
-      content: _contentController.text.trim(),
-      author: '사용자', // 실제로는 로그인한 사용자명
-      createdAt: widget.post?.createdAt ?? DateTime.now(),
-      views: widget.post?.views ?? 0,
-    );
+    try {
+      final createdPost = await BoardApiService.createPost(
+        title: _titleController.text.trim(),
+        content: _contentController.text.trim(),
+        division: 'all', // 혹은 필요시 실제 division 값으로 대체
+      );
 
+<<<<<<< HEAD
+    // 이전 화면(tab1)으로 데이터 전달
     Navigator.pop(context, newPost);
+=======
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => PostDetailPage(
+            post: createdPost,
+            onPostUpdated: (_) {},
+            onPostDeleted: (_) {},
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('게시글 작성 실패: $e')));
+    }
+>>>>>>> 5d48de2f32cb35fdb8f23c59e46cdcafa85ef7bb
   }
 
   @override
@@ -63,7 +86,10 @@ class _WritePostPageState extends State<WritePostPage> {
             onPressed: _savePost,
             child: const Text(
               '저장',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -83,7 +109,7 @@ class _WritePostPageState extends State<WritePostPage> {
               maxLines: 1,
             ),
             const SizedBox(height: 16),
-            
+
             // 내용 입력
             Expanded(
               child: TextField(
@@ -104,4 +130,4 @@ class _WritePostPageState extends State<WritePostPage> {
       ),
     );
   }
-} 
+}

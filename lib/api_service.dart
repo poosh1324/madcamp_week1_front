@@ -122,7 +122,6 @@ class ApiService {
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
-
     // 🔍 디버깅: 토큰 조회 결과
     if (token != null) {
       print("토큰: $token");
@@ -261,6 +260,58 @@ class ApiService {
         'message': '사용자 정보 조회 중 오류가 발생했습니다: $e',
         'data': null,
       };
+    }
+  }
+
+  // 내가 쓴 글 가져오기
+  static Future<List<Map<String, dynamic>>> fetchMyPosts() async {
+    final token = await getToken();
+    if (token == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/posts'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('❌ fetchMyPosts 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ fetchMyPosts 오류: $e');
+      return [];
+    }
+  }
+
+  // 내가 쓴 댓글 가져오기
+  static Future<List<Map<String, dynamic>>> fetchMyComments() async {
+    final token = await getToken();
+    if (token == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/comments'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('❌ fetchMyComments 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ fetchMyComments 오류: $e');
+      return [];
     }
   }
 }

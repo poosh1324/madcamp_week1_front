@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_model.dart';
+import 'comment_model.dart';
 
 class BoardApiService {
   // static const String baseUrl = 'http://localhost:4000';
@@ -11,7 +12,8 @@ class BoardApiService {
   // 토큰 가져오기
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString('token');
+    print(prefs.getString('auth_token'));
+    return prefs.getString('auth_token');
   }
   
   // 공통 헤더 설정
@@ -97,8 +99,8 @@ class BoardApiService {
       
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print(data);
-        return Post.fromJson(data['post']);
+        return Post.fromJson(data);
+        
       } else {
         throw Exception('게시글을 가져오는데 실패했습니다: ${response.statusCode}');
       }
@@ -111,23 +113,30 @@ class BoardApiService {
   static Future<Post> createPost({
     required String title,
     required String content,
+    required String division,
   }) async {
     try {
       final headers = await _getHeaders();
       final body = json.encode({
         'title': title,
         'content': content,
+        'division': division,
       });
-      
       final response = await http.post(
-        Uri.parse('$baseUrl/posts'),
+        Uri.parse('$baseUrl/posts/create'),
         headers: headers,
         body: body,
       );
       
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
+<<<<<<< HEAD
+        // final data = response.body;
         return Post.fromJson(data['post']);
+=======
+        final String postId = data['postId'];
+        return await getPost(postId);
+>>>>>>> 5d48de2f32cb35fdb8f23c59e46cdcafa85ef7bb
       } else {
         throw Exception('게시글 작성에 실패했습니다: ${response.statusCode}');
       }
@@ -253,6 +262,129 @@ class BoardApiService {
         return postsJson.map((json) => Post.fromJson(json)).toList();
       } else {
         throw Exception('내 게시글을 가져오는데 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
+  // === 댓글 관련 API 함수들 ===
+
+  // 9. 특정 게시글의 댓글 목록 조회
+  static Future<List<Comment>> getComments(String postId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('$baseUrl/posts/$postId/comments'),
+        headers: headers,
+      );
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> commentsJson = json.decode(response.body);
+        return commentsJson.map((json) => Comment.fromJson(json)).toList();
+      } else {
+        throw Exception('댓글 목록을 가져오는데 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
+  // 10. 댓글 작성
+  static Future<Comment> createComment({
+    required String postId,
+    required String content,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final body = json.encode({
+        'content': content,
+      });
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/posts/$postId/comments'),
+        headers: headers,
+        body: body,
+      );
+      
+      if (response.statusCode == 201) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return Comment.fromJson(data['comment']);
+      } else {
+        throw Exception('댓글 작성에 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
+  // 11. 댓글 수정
+  static Future<Comment> updateComment({
+    required String commentId,
+    required String content,
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final body = json.encode({
+        'content': content,
+      });
+      
+      final response = await http.put(
+        Uri.parse('$baseUrl/comments/$commentId'),
+        headers: headers,
+        body: body,
+      );
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return Comment.fromJson(data['comment']);
+      } else {
+        throw Exception('댓글 수정에 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
+  // 12. 댓글 삭제
+  static Future<void> deleteComment(String commentId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.delete(
+        Uri.parse('$baseUrl/comments/$commentId'),
+        headers: headers,
+      );
+      
+      if (response.statusCode != 200) {
+        throw Exception('댓글 삭제에 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
+  // 13. 댓글 좋아요/싫어요
+  static Future<Comment> likeComment({
+    required String commentId,
+    required bool isLike, // true: 좋아요, false: 싫어요
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      final body = json.encode({
+        'isLike': isLike,
+      });
+      
+      final response = await http.post(
+        Uri.parse('$baseUrl/comments/$commentId/like'),
+        headers: headers,
+        body: body,
+      );
+      
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return Comment.fromJson(data['comment']);
+      } else {
+        throw Exception('댓글 좋아요/싫어요에 실패했습니다: ${response.statusCode}');
       }
     } catch (e) {
       throw Exception('네트워크 오류: $e');
