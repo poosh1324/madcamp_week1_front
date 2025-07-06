@@ -2,19 +2,16 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_model.dart';
+import '../api_service.dart' show ApiService;
 
 class BoardApiService {
-  // static const String baseUrl = 'http://localhost:4000';
-  static const String baseUrl = 'https://madcampweek1back-production.up.railway.app';
-
-  
   // 토큰 가져오기
   static Future<String?> getToken() async {
     final prefs = await SharedPreferences.getInstance();
     print(prefs.getString('auth_token'));
     return prefs.getString('auth_token');
   }
-  
+
   // 공통 헤더 설정
   static Future<Map<String, String>> _getHeaders() async {
     final token = await getToken();
@@ -35,45 +32,46 @@ class BoardApiService {
     try {
       print('=== getPosts 시작 ===');
       print('요청 파라미터: page=$page, limit=$limit');
-      
+
       final headers = await _getHeaders();
       print('헤더 확인: $headers');
-      
+
       // 쿼리 파라미터 구성
-      final queryParams = {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      };
-      
-      final uri = Uri.parse('$baseUrl/posts/boards/all').replace(queryParameters: queryParams);
+      final queryParams = {'page': page.toString(), 'limit': limit.toString()};
+
+      final uri = Uri.parse(
+        '${ApiService.baseUrl}/posts/boards/all',
+      ).replace(queryParameters: queryParams);
       print('요청 URL: $uri');
-      
+
       final response = await http.get(uri, headers: headers);
       print('응답 상태코드: ${response.statusCode}');
       print('응답 헤더: ${response.headers}');
       print('응답 본문: ${response.body}');
-      
+
       if (response.statusCode == 200) {
         // 서버 응답 타입 확인
         final dynamic responseData = json.decode(response.body);
         print('파싱된 데이터: $responseData');
         print('파싱된 데이터 타입: ${responseData.runtimeType}');
-        
+
         if (responseData is List) {
           final List<dynamic> postsJson = responseData;
           print('배열 길이: ${postsJson.length}');
-          
+
           if (postsJson.isNotEmpty) {
             print('첫 번째 게시글: ${postsJson[0]}');
           }
-          
+
           final posts = postsJson.map((json) => Post.fromJson(json)).toList();
           print('변환된 Post 객체 수: ${posts.length}');
           print('=== getPosts 성공 ===');
           return posts;
         } else {
           print('❌ 응답이 배열이 아님: ${responseData.runtimeType}');
-          throw Exception('서버에서 예상하지 못한 응답 형식을 받았습니다: ${responseData.runtimeType}');
+          throw Exception(
+            '서버에서 예상하지 못한 응답 형식을 받았습니다: ${responseData.runtimeType}',
+          );
         }
       } else {
         print('❌ HTTP 오류: ${response.statusCode}');
@@ -92,14 +90,13 @@ class BoardApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('$baseUrl/posts/$postId'),
+        Uri.parse('${ApiService.baseUrl}/posts/$postId'),
         headers: headers,
       );
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Post.fromJson(data);
-        
       } else {
         throw Exception('게시글을 가져오는데 실패했습니다: ${response.statusCode}');
       }
@@ -122,11 +119,11 @@ class BoardApiService {
         'division': division,
       });
       final response = await http.post(
-        Uri.parse('$baseUrl/posts/create'),
+        Uri.parse('${ApiService.baseUrl}/posts/create'),
         headers: headers,
         body: body,
       );
-      
+
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
         final String postId = data['postId'];
@@ -147,17 +144,14 @@ class BoardApiService {
   }) async {
     try {
       final headers = await _getHeaders();
-      final body = json.encode({
-        'title': title,
-        'content': content,
-      });
-      
+      final body = json.encode({'title': title, 'content': content});
+
       final response = await http.put(
-        Uri.parse('$baseUrl/posts/$postId'),
+        Uri.parse('${ApiService.baseUrl}/posts/$postId'),
         headers: headers,
         body: body,
       );
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         return Post.fromJson(data['post']);
@@ -174,10 +168,10 @@ class BoardApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.delete(
-        Uri.parse('$baseUrl/posts/boards/$postId'),
+        Uri.parse('${ApiService.baseUrl}/posts/boards/$postId'),
         headers: headers,
       );
-      
+
       if (response.statusCode != 200) {
         throw Exception('게시글 삭제에 실패했습니다: ${response.statusCode}');
       }
@@ -193,19 +187,21 @@ class BoardApiService {
   }) async {
     try {
       final headers = await _getHeaders();
-      
+
       final queryParams = {
         'q': query,
         if (category != null) 'category': category,
       };
-      
-      final uri = Uri.parse('$baseUrl/search').replace(queryParameters: queryParams);
+
+      final uri = Uri.parse(
+        '${ApiService.baseUrl}/search',
+      ).replace(queryParameters: queryParams);
       final response = await http.get(uri, headers: headers);
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> postsJson = data['posts'];
-        
+
         return postsJson.map((json) => Post.fromJson(json)).toList();
       } else {
         throw Exception('검색에 실패했습니다: ${response.statusCode}');
@@ -219,16 +215,16 @@ class BoardApiService {
   static Future<List<Post>> getPopularPosts({int limit = 10}) async {
     try {
       final headers = await _getHeaders();
-      final uri = Uri.parse('$baseUrl/popular').replace(queryParameters: {
-        'limit': limit.toString(),
-      });
-      
+      final uri = Uri.parse(
+        '${ApiService.baseUrl}/popular',
+      ).replace(queryParameters: {'limit': limit.toString()});
+
       final response = await http.get(uri, headers: headers);
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> postsJson = data['posts'];
-        
+
         return postsJson.map((json) => Post.fromJson(json)).toList();
       } else {
         throw Exception('인기 게시글을 가져오는데 실패했습니다: ${response.statusCode}');
@@ -242,17 +238,16 @@ class BoardApiService {
   static Future<List<Post>> getMyPosts({int page = 1, int limit = 20}) async {
     try {
       final headers = await _getHeaders();
-      final uri = Uri.parse('$baseUrl/my-posts').replace(queryParameters: {
-        'page': page.toString(),
-        'limit': limit.toString(),
-      });
-      
+      final uri = Uri.parse('${ApiService.baseUrl}/my-posts').replace(
+        queryParameters: {'page': page.toString(), 'limit': limit.toString()},
+      );
+
       final response = await http.get(uri, headers: headers);
-      
+
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> postsJson = data['posts'];
-        
+
         return postsJson.map((json) => Post.fromJson(json)).toList();
       } else {
         throw Exception('내 게시글을 가져오는데 실패했습니다: ${response.statusCode}');
@@ -261,4 +256,4 @@ class BoardApiService {
       throw Exception('네트워크 오류: $e');
     }
   }
-} 
+}
