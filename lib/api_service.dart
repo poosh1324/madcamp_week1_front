@@ -133,6 +133,14 @@ class ApiService {
     return token;
   }
 
+  static Future<Map<String, String>> getAuthHeaders() async {
+    final token = await ApiService.getToken(); // 또는 따로 저장된 토큰 읽기
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
+  }
+
   // 토큰 삭제 (로그아웃)
   static Future<void> removeToken() async {
     final prefs = await SharedPreferences.getInstance();

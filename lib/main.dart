@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'login/loginPage.dart';
 import 'board/tab1.dart';
-import 'login/tab2.dart';
+import 'gallery/tab2.dart';
 import 'mypage/tab3.dart';
 
 void main() {
@@ -64,14 +64,14 @@ class _MyHomePageState extends State<MyHomePage>
           controller: _tabController,
           tabs: const [
             Tab(icon: Icon(Icons.home), text: '홈'),
-            Tab(icon: Icon(Icons.search), text: '검색'),
+            Tab(icon: Icon(Icons.photo_library), text: '갤러리'),
             Tab(icon: Icon(Icons.person), text: '프로필'),
           ],
         ),
       ),
       body: TabBarView(
         controller: _tabController,
-        children: const [HomeTab(), SearchTab(), ProfileTab()],
+        children: const [HomeTab(), GalleryTab(), ProfileTab()],
       ),
     );
   }
