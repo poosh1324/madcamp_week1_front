@@ -23,26 +23,26 @@ class PostDetailPage extends StatefulWidget {
 
 class _PostDetailPageState extends State<PostDetailPage> {
   late Post currentPost;
-  String? currentUserId;  // 현재 사용자 ID
-  bool isLoading = true;   // 로딩 상태
-  
+  String? currentUserId; // 현재 사용자 ID
+  bool isLoading = true; // 로딩 상태
+
   // 댓글 관련 상태 변수들
   List<Comment> comments = [];
   bool commentsLoading = false;
   final TextEditingController _commentController = TextEditingController();
   final FocusNode _commentFocus = FocusNode();
-  String? _editingCommentId;  // 수정 중인 댓글 ID
-  String? _replyingToCommentId;  // 답글 작성 중인 댓글 ID
-  final Map<String, bool> _expandedReplies = {};  // 대댓글 펼침 상태
+  String? _editingCommentId; // 수정 중인 댓글 ID
+  String? _replyingToCommentId; // 답글 작성 중인 댓글 ID
+  final Map<String, bool> _expandedReplies = {}; // 대댓글 펼침 상태
 
   @override
   void initState() {
     super.initState();
     currentPost = widget.post;
 
-    _loadCurrentUser();  // 현재 사용자 정보 로드
-    _loadComments();     // 댓글 목록 로드
-    
+    _loadCurrentUser(); // 현재 사용자 정보 로드
+    _loadComments(); // 댓글 목록 로드
+
     // 디버깅을 위한 division 값 확인
     print('=== Division 디버깅 ===');
     print('division 값: "${currentPost.division}"');
@@ -50,6 +50,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     print('division 타입: ${currentPost.division.runtimeType}');
     print('division isEmpty: ${currentPost.division.isEmpty}');
     print('====================');
+    print('📦 widget.post.id: ${widget.post.id}');
+    print('📦 widget.post.title: ${widget.post.title}');
 
     // 조회수 증가 (실제로는 서버에 요청)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -120,7 +122,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         commentsLoading = false;
       });
       print('댓글 로드 실패: $e');
-      
+
       // 에러 발생 시 더미 댓글 데이터 사용 (개발 중에만)
       _loadDummyComments();
     }
@@ -163,7 +165,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
           dislikes: 0,
         ),
       ];
-      
+
       // 대댓글 펼침 상태 초기화
       for (var comment in comments) {
         if (comment.replies.isNotEmpty) {
@@ -176,9 +178,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
   // 댓글 또는 대댓글 작성
   Future<void> _writeComment() async {
     if (_commentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글을 입력해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('댓글을 입력해주세요.')));
       return;
     }
 
@@ -193,7 +195,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
         setState(() {
           // 부모 댓글 찾아서 대댓글 추가
-          final parentIndex = comments.indexWhere((c) => c.id == _replyingToCommentId);
+          final parentIndex = comments.indexWhere(
+            (c) => c.id == _replyingToCommentId,
+          );
           if (parentIndex != -1) {
             comments[parentIndex] = comments[parentIndex].addReply(newReply);
             _expandedReplies[_replyingToCommentId!] = true;
@@ -203,6 +207,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         });
       } else {
         // 일반 댓글 작성
+        print('뭐에여? ${currentPost.id}');
         final newComment = await BoardApiService.createComment(
           postId: currentPost.id,
           content: _commentController.text.trim(),
@@ -215,19 +220,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
       }
 
       _commentFocus.unfocus();
-      
+
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(_replyingToCommentId != null ? '답글이 작성되었습니다.' : '댓글이 작성되었습니다.'),
+            content: Text(
+              _replyingToCommentId != null ? '답글이 작성되었습니다.' : '댓글이 작성되었습니다.',
+            ),
           ),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('댓글 작성 실패: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('댓글 작성 실패: ${e.toString()}')));
       }
     }
   }
@@ -235,9 +242,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
   // 댓글 수정
   Future<void> _editComment(Comment comment) async {
     if (_commentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('댓글을 입력해주세요.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('댓글을 입력해주세요.')));
       return;
     }
 
@@ -250,9 +257,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         if (comment.parentId != null) {
           // 대댓글 수정
-          final parentIndex = comments.indexWhere((c) => c.id == comment.parentId);
+          final parentIndex = comments.indexWhere(
+            (c) => c.id == comment.parentId,
+          );
           if (parentIndex != -1) {
-            comments[parentIndex] = comments[parentIndex].updateReply(updatedComment);
+            comments[parentIndex] = comments[parentIndex].updateReply(
+              updatedComment,
+            );
           }
         } else {
           // 일반 댓글 수정
@@ -266,17 +277,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
       });
 
       _commentFocus.unfocus();
-      
+
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('댓글이 수정되었습니다.')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('댓글이 수정되었습니다.')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('댓글 수정 실패: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('댓글 수정 실패: ${e.toString()}')));
       }
     }
   }
@@ -287,7 +298,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(comment.parentId != null ? '답글 삭제' : '댓글 삭제'),
-        content: Text('정말로 이 ${comment.parentId != null ? '답글' : '댓글'}을 삭제하시겠습니까?'),
+        content: Text(
+          '정말로 이 ${comment.parentId != null ? '답글' : '댓글'}을 삭제하시겠습니까?',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
@@ -305,30 +318,38 @@ class _PostDetailPageState extends State<PostDetailPage> {
     if (confirmed == true) {
       try {
         await BoardApiService.deleteComment(comment.id);
-        
+
         setState(() {
           if (comment.parentId != null) {
             // 대댓글 삭제
-            final parentIndex = comments.indexWhere((c) => c.id == comment.parentId);
+            final parentIndex = comments.indexWhere(
+              (c) => c.id == comment.parentId,
+            );
             if (parentIndex != -1) {
-              comments[parentIndex] = comments[parentIndex].removeReply(comment.id);
+              comments[parentIndex] = comments[parentIndex].removeReply(
+                comment.id,
+              );
             }
           } else {
             // 일반 댓글 삭제
             comments.removeWhere((c) => c.id == comment.id);
           }
         });
-        
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${comment.parentId != null ? '답글' : '댓글'}이 삭제되었습니다.')),
+            SnackBar(
+              content: Text(
+                '${comment.parentId != null ? '답글' : '댓글'}이 삭제되었습니다.',
+              ),
+            ),
           );
         }
       } catch (e) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('댓글 삭제 실패: ${e.toString()}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('댓글 삭제 실패: ${e.toString()}')));
         }
       }
     }
@@ -345,9 +366,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         if (comment.parentId != null) {
           // 대댓글 좋아요
-          final parentIndex = comments.indexWhere((c) => c.id == comment.parentId);
+          final parentIndex = comments.indexWhere(
+            (c) => c.id == comment.parentId,
+          );
           if (parentIndex != -1) {
-            comments[parentIndex] = comments[parentIndex].updateReply(updatedComment);
+            comments[parentIndex] = comments[parentIndex].updateReply(
+              updatedComment,
+            );
           }
         } else {
           // 일반 댓글 좋아요
@@ -359,9 +384,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('좋아요/싫어요 실패: ${e.toString()}')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('좋아요/싫어요 실패: ${e.toString()}')));
       }
     }
   }
@@ -657,22 +682,20 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   textAlign: TextAlign.center,
                 ),
               ),
-            
+
             const SizedBox(height: 32),
-            
+
             // 댓글 섹션
             Container(
               width: double.infinity,
               decoration: BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.grey.shade300),
-                ),
+                border: Border(top: BorderSide(color: Colors.grey.shade300)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const SizedBox(height: 16),
-                  
+
                   // 댓글 제목
                   Row(
                     children: [
@@ -688,11 +711,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  
+
                   // 댓글 작성란
                   _buildCommentInput(),
                   const SizedBox(height: 16),
-                  
+
                   // 댓글 목록
                   if (commentsLoading)
                     const Center(
@@ -765,7 +788,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
             ),
-          
+
           if (_replyingToCommentId != null)
             Container(
               padding: const EdgeInsets.all(8),
@@ -786,17 +809,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
             ),
-          
+
           if (_editingCommentId != null || _replyingToCommentId != null)
             const SizedBox(height: 12),
-          
+
           // 댓글 입력 필드
           TextField(
             controller: _commentController,
             focusNode: _commentFocus,
             decoration: InputDecoration(
-              hintText: _replyingToCommentId != null 
-                  ? '답글을 입력하세요...' 
+              hintText: _replyingToCommentId != null
+                  ? '답글을 입력하세요...'
                   : '댓글을 입력하세요...',
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -810,28 +833,27 @@ class _PostDetailPageState extends State<PostDetailPage> {
             minLines: 1,
           ),
           const SizedBox(height: 12),
-          
+
           // 버튼들
           Row(
             children: [
               const Spacer(),
               if (_editingCommentId != null || _replyingToCommentId != null)
-                TextButton(
-                  onPressed: _cancelComment,
-                  child: const Text('취소'),
-                ),
+                TextButton(onPressed: _cancelComment, child: const Text('취소')),
               const SizedBox(width: 8),
               ElevatedButton(
-                onPressed: _editingCommentId != null 
+                onPressed: _editingCommentId != null
                     ? () => _editComment(_findCommentById(_editingCommentId!))
                     : _writeComment,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   foregroundColor: Colors.white,
                 ),
-                child: Text(_editingCommentId != null 
-                    ? '수정' 
-                    : (_replyingToCommentId != null ? '답글' : '댓글')),
+                child: Text(
+                  _editingCommentId != null
+                      ? '수정'
+                      : (_replyingToCommentId != null ? '답글' : '댓글'),
+                ),
               ),
             ],
           ),
@@ -876,9 +898,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     const SizedBox(width: 8),
                     Text(
                       '${comment.division}반 몰입러',
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const Spacer(),
                     Text(
@@ -891,14 +911,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 // 댓글 내용
                 Text(
                   comment.content,
                   style: const TextStyle(fontSize: 14, height: 1.4),
                 ),
                 const SizedBox(height: 12),
-                
+
                 // 댓글 액션 버튼들
                 Row(
                   children: [
@@ -907,27 +927,41 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       onTap: () => _likeComment(comment, true),
                       child: Row(
                         children: [
-                          const Icon(Icons.thumb_up, size: 16, color: Colors.blue),
+                          const Icon(
+                            Icons.thumb_up,
+                            size: 16,
+                            color: Colors.blue,
+                          ),
                           const SizedBox(width: 4),
-                          Text('${comment.likes}', style: const TextStyle(fontSize: 12)),
+                          Text(
+                            '${comment.likes}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // 싫어요 버튼
                     InkWell(
                       onTap: () => _likeComment(comment, false),
                       child: Row(
                         children: [
-                          const Icon(Icons.thumb_down, size: 16, color: Colors.red),
+                          const Icon(
+                            Icons.thumb_down,
+                            size: 16,
+                            color: Colors.red,
+                          ),
                           const SizedBox(width: 4),
-                          Text('${comment.dislikes}', style: const TextStyle(fontSize: 12)),
+                          Text(
+                            '${comment.dislikes}',
+                            style: const TextStyle(fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 16),
-                    
+
                     // 답글 버튼
                     InkWell(
                       onTap: () => _startReplyComment(comment),
@@ -939,9 +973,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         ],
                       ),
                     ),
-                    
+
                     const Spacer(),
-                    
+
                     // 수정/삭제 버튼 (본인 댓글만)
                     if (_canEditComment(comment))
                       PopupMenuButton<String>(
@@ -981,7 +1015,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       ),
                   ],
                 ),
-                
+
                 // 대댓글 펼치기/접기 버튼
                 if (comment.replies.isNotEmpty)
                   Padding(
@@ -991,8 +1025,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       child: Row(
                         children: [
                           Icon(
-                            _expandedReplies[comment.id] == true 
-                                ? Icons.expand_less 
+                            _expandedReplies[comment.id] == true
+                                ? Icons.expand_less
                                 : Icons.expand_more,
                             size: 16,
                             color: Colors.blue,
@@ -1012,13 +1046,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ],
             ),
           ),
-          
+
           // 대댓글 목록
-          if (comment.replies.isNotEmpty && _expandedReplies[comment.id] == true)
+          if (comment.replies.isNotEmpty &&
+              _expandedReplies[comment.id] == true)
             Container(
               margin: const EdgeInsets.only(left: 32, top: 8),
               child: Column(
-                children: comment.replies.map((reply) => _buildReplyItem(reply)).toList(),
+                children: comment.replies
+                    .map((reply) => _buildReplyItem(reply))
+                    .toList(),
               ),
             ),
         ],
@@ -1065,22 +1102,19 @@ class _PostDetailPageState extends State<PostDetailPage> {
               const Spacer(),
               Text(
                 reply.timeAgo,
-                style: TextStyle(
-                  color: Colors.grey.shade600,
-                  fontSize: 10,
-                ),
+                style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          
+
           // 대댓글 내용
           Text(
             reply.content,
             style: const TextStyle(fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 8),
-          
+
           // 대댓글 액션 버튼들
           Row(
             children: [
@@ -1091,12 +1125,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   children: [
                     const Icon(Icons.thumb_up, size: 14, color: Colors.blue),
                     const SizedBox(width: 4),
-                    Text('${reply.likes}', style: const TextStyle(fontSize: 11)),
+                    Text(
+                      '${reply.likes}',
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(width: 12),
-              
+
               // 싫어요 버튼
               InkWell(
                 onTap: () => _likeComment(reply, false),
@@ -1104,13 +1141,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   children: [
                     const Icon(Icons.thumb_down, size: 14, color: Colors.red),
                     const SizedBox(width: 4),
-                    Text('${reply.dislikes}', style: const TextStyle(fontSize: 11)),
+                    Text(
+                      '${reply.dislikes}',
+                      style: const TextStyle(fontSize: 11),
+                    ),
                   ],
                 ),
               ),
-              
+
               const Spacer(),
-              
+
               // 수정/삭제 버튼 (본인 대댓글만)
               if (_canEditComment(reply))
                 PopupMenuButton<String>(
@@ -1154,4 +1194,4 @@ class _PostDetailPageState extends State<PostDetailPage> {
       ),
     );
   }
-} 
+}

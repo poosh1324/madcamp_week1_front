@@ -295,14 +295,15 @@ class BoardApiService {
       });
 
       final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/posts/$postId/comments'),
+        Uri.parse('${ApiService.baseUrl}/comments/$postId'),
         headers: headers,
         body: body,
       );
 
+      print('댓글 작성 응답::::::: ${response.body}');
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return Comment.fromJson(data['comment']);
+        return Comment.fromJson(data);
       } else {
         throw Exception('댓글 작성에 실패했습니다: ${response.statusCode}');
       }
