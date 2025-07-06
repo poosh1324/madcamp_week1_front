@@ -95,8 +95,8 @@ class _WritePostPageState extends State<WritePostPage> {
         actions: [
           TextButton(
             onPressed: _savePost,
-            child: const Text(
-              '저장',
+            child: Text(
+              widget.post == null ? '작성' : '수정',
               style: TextStyle(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,

@@ -169,7 +169,7 @@ class BoardApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.delete(
-        Uri.parse('${ApiService.baseUrl}/posts/boards/$postId'),
+        Uri.parse('${ApiService.baseUrl}/posts/$postId'),
         headers: headers,
       );
 
