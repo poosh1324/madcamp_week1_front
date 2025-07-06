@@ -21,8 +21,25 @@ class GalleryApiService {
     }
   }
 
+  // 분반별 이미지 목록 불러오기
+  static Future<List<String>> fetchImages(String division) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/gallery/$division'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item.toString()).toList();
+      } else {
+        throw Exception('이미지 목록 불러오기 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
   // 이미지 업로드
-  static Future<void> uploadImage() async {
+  static Future<void> uploadImage(String division) async {
     try {
       final picker = ImagePicker();
       final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -37,6 +54,7 @@ class GalleryApiService {
       );
       final headers = await ApiService.getAuthHeaders();
       request.headers.addAll(headers);
+      request.fields['division'] = division;
 
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
@@ -47,5 +65,39 @@ class GalleryApiService {
     } catch (e) {
       throw Exception('업로드 중 오류 발생: $e');
     }
+  }
+
+  // 분반별 이미지 프리뷰 불러오기
+  static Future<List<String>> fetchImagePreviews(String division) async {
+    try {
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/gallery/preview/$division'),
+      );
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        return data.map((item) => item.toString()).toList();
+      } else {
+        throw Exception('이미지 프리뷰 불러오기 실패: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
+
+  // 분반별 이미지 프리뷰 Map 타입으로 리턴
+  static Future<Map<String, List<String>>> fetchAllImagePreviews() async {
+    const divisions = ['1', '2', '3', '4'];
+    final Map<String, List<String>> previews = {};
+
+    for (final division in divisions) {
+      try {
+        final images = await fetchImagePreviews(division);
+        previews[division] = images;
+      } catch (e) {
+        previews[division] = []; // 실패 시 빈 리스트 처리
+      }
+    }
+
+    return previews;
   }
 }

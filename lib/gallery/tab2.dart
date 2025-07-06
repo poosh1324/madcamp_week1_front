@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '/gallery/gallery_detail_page.dart';
 import '/gallery/gallery_api_service.dart';
+import '/gallery/gallery_division_page.dart';
 
 class GalleryTab extends StatefulWidget {
   const GalleryTab({super.key});
@@ -10,25 +10,25 @@ class GalleryTab extends StatefulWidget {
 }
 
 class _GalleryTabState extends State<GalleryTab> {
-  late Future<List<String>> _imageUrls;
+  late Future<Map<String, List<String>>> _previewUrls;
 
   @override
   void initState() {
     super.initState();
-    _imageUrls = GalleryApiService.fetchImageUrls(); // API에서 이미지 리스트 가져오기
+    _previewUrls = GalleryApiService.fetchAllImagePreviews();
   }
 
-  void _reloadImages() {
+  void _reloadPreviews() {
     setState(() {
-      _imageUrls = GalleryApiService.fetchImageUrls();
+      _previewUrls = GalleryApiService.fetchAllImagePreviews();
     });
   }
 
-  void _onImageTap(String imageUrl) {
+  void _onDivisionTap(String division) {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => GalleryDetailPage(imageUrl: imageUrl),
+        builder: (context) => GalleryDivisionPage(division: division),
       ),
     );
   }
@@ -40,38 +40,68 @@ class _GalleryTabState extends State<GalleryTab> {
         title: const Text('Our Memories'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.upload),
-            onPressed: () async {
-              await GalleryApiService.uploadImage(); // 갤러리 업로드 기능
-              _reloadImages();
-            },
+            icon: const Icon(Icons.refresh),
+            onPressed: _reloadPreviews,
           ),
         ],
       ),
-      body: FutureBuilder<List<String>>(
-        future: _imageUrls,
+      body: FutureBuilder<Map<String, List<String>>>(
+        future: _previewUrls,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('이미지 로드 실패: ${snapshot.error}'));
+            return Center(child: Text('불러오기 실패: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return const Center(child: Text('이미지가 없습니다.'));
           }
 
-          final urls = snapshot.data!;
-          return GridView.builder(
-            padding: const EdgeInsets.all(8),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 3,
-              crossAxisSpacing: 4,
-              mainAxisSpacing: 4,
-            ),
-            itemCount: urls.length,
+          final previewData = snapshot.data!;
+          final divisions = previewData.keys.toList();
+
+          return ListView.builder(
+            itemCount: divisions.length,
             itemBuilder: (context, index) {
+              final division = divisions[index];
+              final urls = previewData[division]!;
+
               return GestureDetector(
-                onTap: () => _onImageTap(urls[index]),
-                child: Image.network(urls[index], fit: BoxFit.cover),
+                onTap: () => _onDivisionTap(division),
+                child: Card(
+                  margin: const EdgeInsets.all(8),
+                  child: Padding(
+                    padding: const EdgeInsets.all(8),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Division $division',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 100,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            itemCount: urls.length,
+                            itemBuilder: (context, i) => Padding(
+                              padding: const EdgeInsets.only(right: 8),
+                              child: Image.network(
+                                urls[i],
+                                width: 100,
+                                height: 100,
+                                fit: BoxFit.cover,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               );
             },
           );
