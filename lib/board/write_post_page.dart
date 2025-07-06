@@ -66,21 +66,23 @@ class _WritePostPageState extends State<WritePostPage> {
           context,
         ).showSnackBar(SnackBar(content: Text('게시글 작성 실패: $e')));
       }
-    }
-    else {
+    } else {
       try {
         final updatedPost = await BoardApiService.updatePost(
           postId: widget.post!.id,
           title: _titleController.text.trim(),
           content: _contentController.text.trim(),
         );
+
+        // 수정 후
+        Navigator.pop(context, updatedPost);
       } catch (e) {
         if (!mounted) return;
         ScaffoldMessenger.of(
           context,
         ).showSnackBar(SnackBar(content: Text('게시글 수정 실패: $e')));
       }
-    } 
+    }
   }
 
   @override

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_model.dart';
 import 'write_post_page.dart';
@@ -74,14 +75,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Future<void> _loadCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      
+
       // final keys = prefs.getKeys();
       // print("키스 걀긴다~~~");
       // for (final key in keys){
       //   print('$key');
       // }
       currentUserId = prefs.getString('username');
-
 
       print('=== 권한 체크 ===');
       print('현재 사용자: $currentUserId');
@@ -109,7 +109,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // 댓글 권한 체크
   bool _canEditComment(Comment comment) {
-    print("댓글 권한 체크, currentUserId: $currentUserId, comment.author: ${comment.author}");
+    print(
+      "댓글 권한 체크, currentUserId: $currentUserId, comment.author: ${comment.author}",
+    );
     if (currentUserId == null) return false;
     return currentUserId == comment.author;
   }
@@ -470,14 +472,27 @@ class _PostDetailPageState extends State<PostDetailPage> {
       MaterialPageRoute(builder: (context) => WritePostPage(post: currentPost)),
     );
 
+    // null 체크 후 갱신
     if (result != null) {
-      setState(() {
-        currentPost = result;
-      });
-      widget.onPostUpdated(result);
-      ScaffoldMessenger.of(
+      final updatedPost = await Navigator.push(
         context,
-      ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
+        MaterialPageRoute(
+          builder: (context) => PostDetailPage(
+            post: result,
+            onPostDeleted: (_) {},
+            onPostUpdated: (_) {},
+          ),
+        ),
+      );
+      if (updatedPost != null) {
+        setState(() {
+          currentPost = updatedPost;
+        });
+        widget.onPostUpdated(updatedPost);
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
+      }
     }
   }
 
