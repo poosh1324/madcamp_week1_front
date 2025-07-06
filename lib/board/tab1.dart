@@ -237,6 +237,7 @@ class _HomeTabState extends State<HomeTab> {
           ),
         );
       }
+      await _loadPosts();
     } catch (e) {
       if (mounted) {
         Navigator.push(

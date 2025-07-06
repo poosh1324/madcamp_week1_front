@@ -474,25 +474,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
     // null 체크 후 갱신
     if (result != null) {
-      final updatedPost = await Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => PostDetailPage(
-            post: result,
-            onPostDeleted: (_) {},
-            onPostUpdated: (_) {},
-          ),
-        ),
-      );
-      if (updatedPost != null) {
-        setState(() {
-          currentPost = updatedPost;
-        });
-        widget.onPostUpdated(updatedPost);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
-      }
+      setState((){
+        currentPost = result;
+      });
+      widget.onPostUpdated(result);
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
     }
   }
 
