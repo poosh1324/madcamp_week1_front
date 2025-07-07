@@ -109,7 +109,7 @@ class GalleryApiService {
   }
 
   // 이미지 삭제
-  static Future<void> deleteImage(int imageId) async {
+  static Future<bool> deleteImage(int imageId) async {
     try {
       final headers = await ApiService.getAuthHeaders();
       final response = await http.delete(
@@ -117,11 +117,15 @@ class GalleryApiService {
         headers: headers,
       );
 
-      if (response.statusCode != 200) {
-        throw Exception('이미지 삭제 실패: ${response.body}');
+      if (response.statusCode == 200) {
+        return true;
+      } else {
+        print('이미지 삭제 실패: ${response.body}');
+        return false;
       }
     } catch (e) {
-      throw Exception('삭제 중 오류 발생: $e');
+      print('삭제 중 오류 발생: $e');
+      return false;
     }
   }
 }

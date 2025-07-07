@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:test_madcamp/gallery/gallery_api_service.dart';
-import 'gallery_division_page.dart';
 
-class GalleryDetailPage extends StatelessWidget {
+class GalleryDetailPage extends StatefulWidget {
   final int imageId;
   final String imageUrl;
   final String? uploader;
@@ -19,85 +18,217 @@ class GalleryDetailPage extends StatelessWidget {
   }) : super(key: key);
 
   @override
+  State<GalleryDetailPage> createState() => _GalleryDetailPageState();
+}
+
+class _GalleryDetailPageState extends State<GalleryDetailPage> {
+  late ScrollController _scrollController;
+  BoxFit _currentFit = BoxFit.cover;
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController = ScrollController();
+    _scrollController.addListener(() {
+      final shouldContain = _scrollController.offset > 100;
+      if ((_currentFit == BoxFit.cover && shouldContain) ||
+          (_currentFit == BoxFit.contain && !shouldContain)) {
+        setState(() {
+          _currentFit = shouldContain ? BoxFit.contain : BoxFit.cover;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Image Detail'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: () async {
-              final confirm = await showDialog<bool>(
-                context: context,
-                builder: (ctx) => AlertDialog(
-                  title: const Text("Delete Image"),
-                  content: const Text(
-                    "Are you sure you want to delete this image?",
-                  ),
-                  actions: [
-                    TextButton(
-                      child: const Text("Cancel"),
-                      onPressed: () => Navigator.of(ctx).pop(false),
+      body: NestedScrollView(
+        controller: _scrollController,
+        headerSliverBuilder: (context, innerBoxIsScrolled) => [
+          SliverAppBar(
+            pinned: true,
+            floating: false,
+            expandedHeight: 60,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            automaticallyImplyLeading: false,
+            flexibleSpace: SafeArea(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.arrow_back, color: Colors.white),
+                        onPressed: () => Navigator.pop(context),
+                      ),
                     ),
-                    TextButton(
-                      child: const Text("Delete"),
-                      onPressed: () => Navigator.of(ctx).pop(true),
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3),
+                        shape: BoxShape.circle,
+                      ),
+                      child: IconButton(
+                        icon: Icon(Icons.delete, color: Colors.white),
+                        onPressed: () async {
+                          final confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: Text("Delete Image"),
+                                content: Text("정말로 이미지를 삭제하시겠습니까?"),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(false),
+                                    child: Text("취소"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.of(context).pop(true),
+                                    child: Text("삭제"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (confirm == true) {
+                            final success = await GalleryApiService.deleteImage(
+                              widget.imageId,
+                            );
+                            if (success && context.mounted) {
+                              Navigator.pop(context, true);
+                            }
+                          }
+                        },
+                      ),
                     ),
                   ],
                 ),
-              );
-
-              if (confirm == true) {
-                try {
-                  await GalleryApiService.deleteImage(imageId);
-                  Navigator.pop(context, true);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Image deleted')),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(
-                    context,
-                  ).showSnackBar(SnackBar(content: Text('삭제 실패: $e')));
-                }
-              }
-            },
-          ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: Image.network(
-              imageUrl,
-              fit: BoxFit.contain,
-              loadingBuilder: (context, child, progress) {
-                if (progress == null) return child;
-                return const Center(child: CircularProgressIndicator());
-              },
-            ),
-          ),
-          if (uploader != null || uploadedAt != null)
-            Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (uploader != null)
-                    Text(
-                      "Uploaded by: $uploader",
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                  if (uploadedAt != null)
-                    Text(
-                      "Uploaded at: ${uploadedAt!.toLocal()}",
-                      style: const TextStyle(fontSize: 14),
-                    ),
-                ],
               ),
             ),
+          ),
+          SliverPersistentHeader(
+            delegate: _ImageHeaderDelegate(
+              imageUrl: widget.imageUrl,
+              fit: _currentFit,
+            ),
+            pinned: false,
+            floating: false,
+          ),
+          SliverPersistentHeader(
+            pinned: true,
+            delegate: _LikesHeaderDelegate(),
+          ),
         ],
+        body: SingleChildScrollView(
+          child: Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                if (widget.uploader != null)
+                  Text(
+                    "Uploaded by: ${widget.uploader}",
+                    style: const TextStyle(fontSize: 12),
+                  ),
+                const SizedBox(height: 20),
+                const Divider(),
+                const Text(
+                  "Comments",
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 10),
+                const Text("댓글 영역 (향후 구현)"),
+              ],
+            ),
+          ),
+        ),
       ),
     );
   }
+}
+
+class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final String imageUrl;
+  final BoxFit fit;
+
+  _ImageHeaderDelegate({required this.imageUrl, required this.fit});
+
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return AnimatedSwitcher(
+      duration: Duration(milliseconds: 300),
+      child: Image.network(
+        imageUrl,
+        key: ValueKey(fit),
+        fit: fit,
+        width: double.infinity,
+        height: double.infinity,
+        alignment: Alignment.center,
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 400.0;
+  @override
+  double get minExtent => 400.0;
+
+  @override
+  bool shouldRebuild(covariant _ImageHeaderDelegate oldDelegate) {
+    return oldDelegate.fit != fit || oldDelegate.imageUrl != imageUrl;
+  }
+}
+
+class _LikesHeaderDelegate extends SliverPersistentHeaderDelegate {
+  @override
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
+    return SizedBox(
+      height: minExtent,
+      child: Container(
+        color: Colors.white,
+        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: const [
+            Icon(Icons.favorite_border),
+            SizedBox(width: 8),
+            Text('123 likes', style: TextStyle(fontSize: 16)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  double get maxExtent => 48.0;
+  @override
+  double get minExtent => 48.0;
+
+  @override
+  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
+      false;
 }
