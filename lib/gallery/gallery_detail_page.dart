@@ -48,83 +48,16 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       body: NestedScrollView(
         controller: _scrollController,
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
-          SliverAppBar(
-            pinned: true,
-            floating: false,
-            expandedHeight: 60,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            automaticallyImplyLeading: false,
-            flexibleSpace: SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.arrow_back, color: Colors.white),
-                        onPressed: () => Navigator.pop(context),
-                      ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.3),
-                        shape: BoxShape.circle,
-                      ),
-                      child: IconButton(
-                        icon: Icon(Icons.delete, color: Colors.white),
-                        onPressed: () async {
-                          final confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: Text("Delete Image"),
-                                content: Text("정말로 이미지를 삭제하시겠습니까?"),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(false),
-                                    child: Text("취소"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.of(context).pop(true),
-                                    child: Text("삭제"),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-
-                          if (confirm == true) {
-                            final success = await GalleryApiService.deleteImage(
-                              widget.imageId,
-                            );
-                            if (success && context.mounted) {
-                              Navigator.pop(context, true);
-                            }
-                          }
-                        },
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
           SliverPersistentHeader(
             delegate: _ImageHeaderDelegate(
               imageUrl: widget.imageUrl,
               fit: _currentFit,
+              expandedHeight: screenHeight,
             ),
             pinned: false,
             floating: false,
@@ -166,8 +99,13 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
 class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String imageUrl;
   final BoxFit fit;
+  final double expandedHeight;
 
-  _ImageHeaderDelegate({required this.imageUrl, required this.fit});
+  _ImageHeaderDelegate({
+    required this.imageUrl,
+    required this.fit,
+    required this.expandedHeight,
+  });
 
   @override
   Widget build(
@@ -175,23 +113,81 @@ class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
     double shrinkOffset,
     bool overlapsContent,
   ) {
-    return AnimatedSwitcher(
-      duration: Duration(milliseconds: 300),
-      child: Image.network(
-        imageUrl,
-        key: ValueKey(fit),
-        fit: fit,
-        width: double.infinity,
-        height: double.infinity,
-        alignment: Alignment.center,
-      ),
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        AnimatedSwitcher(
+          duration: Duration(milliseconds: 300),
+          child: Image.network(
+            imageUrl,
+            key: ValueKey(fit),
+            fit: fit,
+            width: double.infinity,
+            height: double.infinity,
+            alignment: Alignment.center,
+          ),
+        ),
+        Positioned(
+          top: 40,
+          left: 16,
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, color: Colors.white.withAlpha(200)),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        Positioned(
+          top: 40,
+          right: 16,
+          child: Builder(
+            builder: (context) => IconButton(
+              icon: Icon(Icons.delete, color: Colors.white.withAlpha(200)),
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: Text("Delete Image"),
+                      content: Text("정말로 이미지를 삭제하시겠습니까?"),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(false),
+                          child: Text("취소"),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.of(context).pop(true),
+                          child: Text("삭제"),
+                        ),
+                      ],
+                    );
+                  },
+                );
+
+                if (confirm == true) {
+                  final success = await GalleryApiService.deleteImage(
+                    (context
+                            .findAncestorStateOfType<
+                              _GalleryDetailPageState
+                            >())!
+                        .widget
+                        .imageId,
+                  );
+                  if (success && context.mounted) {
+                    Navigator.pop(context, true);
+                  }
+                }
+              },
+            ),
+          ),
+        ),
+      ],
     );
   }
 
   @override
-  double get maxExtent => 400.0;
+  double get maxExtent => expandedHeight;
+
   @override
-  double get minExtent => 400.0;
+  double get minExtent => expandedHeight;
 
   @override
   bool shouldRebuild(covariant _ImageHeaderDelegate oldDelegate) {
