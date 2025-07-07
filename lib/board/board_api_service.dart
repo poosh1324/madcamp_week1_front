@@ -31,42 +31,30 @@ class BoardApiService {
     String? sortOrder = 'desc',
   }) async {
     try {
-      print('=== getPosts 시작 ===');
-      print('요청 파라미터: page=$page, limit=$limit');
-
       final headers = await _getHeaders();
-      print('헤더 확인: $headers');
-
       // 쿼리 파라미터 구성
       final queryParams = {'page': page.toString(), 'limit': limit.toString()};
 
       final uri = Uri.parse(
         '${ApiService.baseUrl}/posts/boards/all',
       ).replace(queryParameters: queryParams);
-      print('요청 URL: $uri');
 
       final response = await http.get(uri, headers: headers);
-      print('응답 상태코드: ${response.statusCode}');
-      print('응답 헤더: ${response.headers}');
-      print('응답 본문: ${response.body}');
+
 
       if (response.statusCode == 200) {
         // 서버 응답 타입 확인
         final dynamic responseData = json.decode(response.body);
-        print('파싱된 데이터: $responseData');
-        print('파싱된 데이터 타입: ${responseData.runtimeType}');
+
 
         if (responseData is List) {
           final List<dynamic> postsJson = responseData;
-          print('배열 길이: ${postsJson.length}');
 
           if (postsJson.isNotEmpty) {
-            print('첫 번째 게시글: ${postsJson[0]}');
           }
 
           final posts = postsJson.map((json) => Post.fromJson(json)).toList();
-          print('변환된 Post 객체 수: ${posts.length}');
-          print('=== getPosts 성공 ===');
+
           return posts;
         } else {
           print('❌ 응답이 배열이 아님: ${responseData.runtimeType}');
@@ -265,7 +253,7 @@ class BoardApiService {
     try {
       final headers = await _getHeaders();
       final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/posts/$postId/comments'),
+        Uri.parse('${ApiService.baseUrl}/posts/$postId'),
         headers: headers,
       );
 
@@ -273,6 +261,7 @@ class BoardApiService {
         print('댓글 응답 전체: ${response.body}');
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> commentsJson = data['comments'];
+        print("🤢commentsJson: $commentsJson");
         return commentsJson.map((json) => Comment.fromJson(json)).toList();
       } else {
         throw Exception('댓글 목록을 가져오는데 실패했습니다: ${response.statusCode}');
@@ -302,9 +291,9 @@ class BoardApiService {
         body: body,
       );
 
-      // print('댓글 작성 응답::::::: ${response.body}');
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
+
         return Comment.fromJson(data);
       } else {
         throw Exception('댓글 작성에 실패했습니다: ${response.statusCode}');

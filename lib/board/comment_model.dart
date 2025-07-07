@@ -6,8 +6,8 @@ class Comment {
   final String author;
   final String division;
   final DateTime createdAt;
-  int likes;
-  int dislikes;
+  final int likes;
+  final int dislikes;
   final List<Comment> replies;  // 대댓글 목록
 
   Comment({
@@ -28,7 +28,10 @@ class Comment {
     return Comment(
       id: json['commentId']?.toString() ?? json['id']?.toString() ?? '0',
       postId: json['postId']?.toString() ?? '0',
-      parentId: json['parentId']?.toString(),
+      parentId: json['parentId']?.toString() ?? 
+                json['parentCommentId']?.toString() ?? 
+                json['parent_id']?.toString() ?? 
+                json['parent_comment_id']?.toString(),
       content: json['content']?.toString() ?? '',
       author: json['author']?.toString() ?? '',
       division: json['division']?.toString() ?? '',

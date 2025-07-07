@@ -40,20 +40,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void initState() {
     super.initState();
     currentPost = widget.post;
-    print("🏛️currentPost: ${currentPost.author}");
 
     _loadCurrentUser(); // 현재 사용자 정보 로드
     _loadComments(); // 댓글 목록 로드
-
-    // 디버깅을 위한 division 값 확인
-    print('=== Division 디버깅 ===');
-    print('division 값: "${currentPost.division}"');
-    print('division 길이: ${currentPost.division.length}');
-    print('division 타입: ${currentPost.division.runtimeType}');
-    print('division isEmpty: ${currentPost.division.isEmpty}');
-    print('====================');
-    print('📦 widget.post.author: ${widget.post.author}');
-    print('📦 widget.post.title: ${widget.post.title}');
 
     // 조회수 증가 (실제로는 서버에 요청)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -123,7 +112,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
     });
 
     try {
+      print('🔄 서버에서 댓글 로드 시도...');
       final loadedComments = await BoardApiService.getComments(currentPost.id);
+      print('✅ 서버에서 댓글 ${loadedComments.length}개 로드 성공');
+      
       setState(() {
         comments = loadedComments;
         commentsLoading = false;
@@ -132,7 +124,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
       setState(() {
         commentsLoading = false;
       });
-      print('댓글 로드 실패: $e');
+      print('❌ 댓글 로드 실패: $e');
+      print('🔄 더미 데이터로 폴백...');
 
       // 에러 발생 시 더미 댓글 데이터 사용 (개발 중에만)
       _loadDummyComments();
@@ -378,22 +371,24 @@ class _PostDetailPageState extends State<PostDetailPage> {
         commentId: comment.id,
         isLike: isLike,
       );
-      print("😱updatedComment: $updatedComment");
+      print("🥹comment.parentId: ${comment.parentId}");
+      print("🥹comment.likes: ${comment.likes}");
+
       if (updatedComment == "like cancelled"){
-        comment.likes -= 1;
+        comment = comment.copyWith(likes: comment.likes - 1);
       } else if (updatedComment == "dislike cancelled"){
-        comment.dislikes -= 1;
+        comment = comment.copyWith(dislikes: comment.dislikes - 1);
       } else if (updatedComment == "liked comment"){
-        comment.likes += 1;
+        comment = comment.copyWith(likes: comment.likes + 1);
       } else if (updatedComment == "disliked comment"){
-        comment.dislikes += 1;
+        comment = comment.copyWith(dislikes: comment.dislikes + 1);
       } else if (updatedComment == "Changed vote to dislike"){
-        comment.likes -= 1;
-        comment.dislikes += 1;
+        comment = comment.copyWith(likes: comment.likes - 1, dislikes: comment.dislikes + 1);
       } else if (updatedComment == "Changed vote to like"){
-        comment.likes += 1;
-        comment.dislikes -= 1;
+        comment = comment.copyWith(likes: comment.likes + 1, dislikes: comment.dislikes - 1);
       }
+      print("🥹comment.likes: ${comment.likes}");
+
       setState(() {
         if (comment.parentId != null) {
           // 대댓글 좋아요 - Flutter 감지를 위해 새 리스트 생성
@@ -404,6 +399,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             final updatedParent = comments[parentIndex].updateReply(comment);
             comments = List.from(comments);
             comments[parentIndex] = updatedParent;
+            
           }
         } else {
           // 일반 댓글 좋아요 - 새 리스트 생성
