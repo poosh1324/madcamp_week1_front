@@ -39,6 +39,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
   void initState() {
     super.initState();
     currentPost = widget.post;
+    print("🥹currentPost: ${currentPost.division}");
 
     _loadCurrentUser(); // 현재 사용자 정보 로드
     _loadComments(); // 댓글 목록 로드
@@ -104,8 +105,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
     try {
       print('🔄 서버에서 댓글 로드 시도...');
       final loadedComments = await BoardApiService.getComments(currentPost.id);
-      print('✅ 서버에서 댓글 ${loadedComments.length}개 로드 성공');
-
       setState(() {
         comments = loadedComments;
         commentsLoading = false;
@@ -660,7 +659,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     radius: 20,
                     backgroundColor: Colors.blue,
                     child: Text(
-                      currentPost.division,
+                      currentPost.division.substring(0, 1),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 16,

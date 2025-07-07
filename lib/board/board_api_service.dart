@@ -54,7 +54,7 @@ class BoardApiService {
           }
 
           final posts = postsJson.map((json) => Post.fromJson(json)).toList();
-
+          
           return posts;
         } else {
           print('❌ 응답이 배열이 아님: ${responseData.runtimeType}');
@@ -85,7 +85,7 @@ class BoardApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print("겟포스트다!!!!!");
+        print("data: $data");
         return Post.fromJson(data);
         // return Post.fromJson(data), commentsJson.map((json) => Comment.fromJson(json)).toList();
       } else {
@@ -107,7 +107,7 @@ class BoardApiService {
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         final List<dynamic> commentsJson = data['comments'];
-        print("겟커멘트다!!!!!");
+        print("commentsJson: $commentsJson");
         return commentsJson.map((json) => Comment.fromJson(json)).toList();
       } else {
         throw Exception('댓글 목록을 가져오는데 실패했습니다: ${response.statusCode}');
@@ -120,14 +120,12 @@ class BoardApiService {
   static Future<Post> createPost({
     required String title,
     required String content,
-    required String division,
   }) async {
     try {
       final headers = await _getHeaders();
       final body = json.encode({
         'title': title,
         'content': content,
-        'division': division,
       });
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/posts/create'),

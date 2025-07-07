@@ -46,7 +46,6 @@ class _WritePostPageState extends State<WritePostPage> {
         final createdPost = await BoardApiService.createPost(
           title: _titleController.text.trim(),
           content: _contentController.text.trim(),
-          division: 'all', // 혹은 필요시 실제 division 값으로 대체
         );
 
         if (!mounted) return;

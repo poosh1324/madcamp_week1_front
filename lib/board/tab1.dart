@@ -142,13 +142,11 @@ class _HomeTabState extends State<HomeTab> {
       MaterialPageRoute(builder: (context) => const WritePostPage()),
     );
     await _loadPosts();
-
     if (result != null) {
       try {
         final newPost = await BoardApiService.createPost(
           title: result.title,
           content: result.content,
-          division: result.division,
         );
         setState(() {
           _posts.insert(0, newPost);
