@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:test_madcamp/gallery/gallery_api_service.dart';
+import 'package:test_madcamp/gallery/gallery_comment_api_service.dart';
 
 class GalleryDetailPage extends StatefulWidget {
   final int imageId;
@@ -28,6 +29,10 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
   late int _likeCount;
   bool? _isLiked;
 
+  List<Map<String, dynamic>> _comments = [];
+
+  final TextEditingController _commentController = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -43,12 +48,26 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
     });
 
     _loadInitialLikeStatus();
+    _loadComments();
+  }
+
+  Future<void> _submitComment() async {
+    final content = _commentController.text.trim();
+    if (content.isEmpty) return;
+
+    try {
+      await GalleryCommentApiService.postComment(widget.imageId, content);
+      _commentController.clear();
+      _loadComments();
+    } catch (e) {
+      print('댓글 작성 실패: $e');
+    }
   }
 
   Future<void> _loadInitialLikeStatus() async {
     try {
       final likeData = await GalleryApiService.checkIfLiked(widget.imageId);
-      print('🟢 likeData received: $likeData');
+      // print('🟢 likeData received: $likeData');
       setState(() {
         _isLiked = likeData['liked'];
         _likeCount = likeData['likeCount'];
@@ -62,9 +81,32 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
     }
   }
 
+  Future<void> _loadComments() async {
+    try {
+      final comments = await GalleryCommentApiService.getComments(
+        widget.imageId,
+      );
+      // Allow temporary keys for reply UI state and showReplies for top-level comments
+      setState(() {
+        _comments = comments.map<Map<String, dynamic>>((c) {
+          final isTopLevel = c['parent_id'] == null;
+          return {
+            ...c,
+            'showReplyField': c['showReplyField'] ?? false,
+            'replyText': c['replyText'] ?? '',
+            if (isTopLevel) 'showReplies': c['showReplies'] ?? false,
+          };
+        }).toList();
+      });
+    } catch (e) {
+      print('Failed to load comments: $e');
+    }
+  }
+
   @override
   void dispose() {
     _scrollController.dispose();
+    _commentController.dispose();
     super.dispose();
   }
 
@@ -132,7 +174,252 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 const SizedBox(height: 10),
-                const Text("댓글 영역 (향후 구현)"),
+                TextField(
+                  controller: _commentController,
+                  decoration: InputDecoration(
+                    labelText: "Add a comment",
+                    suffixIcon: IconButton(
+                      icon: Icon(Icons.send),
+                      onPressed: _submitComment,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                // New comment/reply rendering logic
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: _comments
+                      .where((c) => c['parent_id'] == null)
+                      .length,
+                  itemBuilder: (context, topLevelIndex) {
+                    // Only top-level comments in this builder
+                    final topLevelComments = _comments
+                        .where((c) => c['parent_id'] == null)
+                        .toList();
+                    final comment = topLevelComments[topLevelIndex];
+                    final commentIndex = _comments.indexWhere(
+                      (c) => c['id'] == comment['id'],
+                    );
+
+                    // Helper to build a comment tile (used for replies)
+                    Widget buildCommentTile(
+                      Map<String, dynamic> c,
+                      int idx, {
+                      bool isReply = false,
+                    }) {
+                      return Padding(
+                        padding: EdgeInsets.only(
+                          left: isReply ? 24.0 : 0.0,
+                          right: 0,
+                          top: 8,
+                          bottom: 8,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        c['username'] ?? 'Unknown',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                      SizedBox(height: 4),
+                                      Text(c['content'] ?? ''),
+                                    ],
+                                  ),
+                                ),
+                                Row(
+                                  children: [
+                                    IconButton(
+                                      icon: Icon(Icons.edit, size: 18),
+                                      onPressed: () {
+                                        final controller =
+                                            TextEditingController(
+                                              text: c['content'],
+                                            );
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text("Edit Comment"),
+                                            content: TextField(
+                                              controller: controller,
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () =>
+                                                    Navigator.pop(context),
+                                                child: Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () async {
+                                                  final newText = controller
+                                                      .text
+                                                      .trim();
+                                                  if (newText.isNotEmpty) {
+                                                    await GalleryCommentApiService.updateComment(
+                                                      c['id'],
+                                                      newText,
+                                                    );
+                                                    Navigator.pop(context);
+                                                    _loadComments();
+                                                  }
+                                                },
+                                                child: Text("Save"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                      },
+                                    ),
+                                    IconButton(
+                                      icon: Icon(Icons.delete, size: 18),
+                                      onPressed: () async {
+                                        final confirm = await showDialog<bool>(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
+                                            title: Text("Delete Comment"),
+                                            content: Text(
+                                              "Are you sure you want to delete this comment?",
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  false,
+                                                ),
+                                                child: Text("Cancel"),
+                                              ),
+                                              TextButton(
+                                                onPressed: () => Navigator.pop(
+                                                  context,
+                                                  true,
+                                                ),
+                                                child: Text("Delete"),
+                                              ),
+                                            ],
+                                          ),
+                                        );
+                                        if (confirm == true) {
+                                          await GalleryCommentApiService.deleteComment(
+                                            c['id'],
+                                          );
+                                          _loadComments();
+                                        }
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                            // Reply button (only for top-level comments, not replies)
+                            if (!isReply)
+                              Row(
+                                children: [
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _comments[idx]['showReplyField'] =
+                                            !(_comments[idx]['showReplyField'] ??
+                                                false);
+                                      });
+                                    },
+                                    child: Text("Reply"),
+                                  ),
+                                  // Show/hide replies button
+                                  TextButton(
+                                    onPressed: () {
+                                      setState(() {
+                                        _comments[idx]['showReplies'] =
+                                            !(_comments[idx]['showReplies'] ??
+                                                false);
+                                      });
+                                    },
+                                    child: Text(
+                                      (c['showReplies'] ?? false)
+                                          ? "Hide replies"
+                                          : "Show replies",
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            // Show reply field if toggled
+                            if (c['showReplyField'] ?? false)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 16.0),
+                                child: Column(
+                                  children: [
+                                    TextField(
+                                      onChanged: (text) {
+                                        setState(() {
+                                          _comments[idx]['replyText'] = text;
+                                        });
+                                      },
+                                      decoration: InputDecoration(
+                                        hintText: "Write a reply...",
+                                      ),
+                                    ),
+                                    Row(
+                                      children: [
+                                        TextButton(
+                                          onPressed: () async {
+                                            final replyContent =
+                                                _comments[idx]['replyText']
+                                                    ?.trim() ??
+                                                '';
+                                            if (replyContent.isNotEmpty) {
+                                              await GalleryCommentApiService.postComment(
+                                                widget.imageId,
+                                                replyContent,
+                                                parentId: c['id'],
+                                              );
+                                              _loadComments();
+                                            }
+                                          },
+                                          child: Text("Post Reply"),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            Divider(),
+                          ],
+                        ),
+                      );
+                    }
+
+                    // Build this top-level comment and its replies (if showReplies)
+                    final replies = _comments
+                        .where((r) => r['parent_id'] == comment['id'])
+                        .toList();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        buildCommentTile(comment, commentIndex, isReply: false),
+                        if (comment['showReplies'] == true)
+                          ...replies.map((reply) {
+                            final replyIdx = _comments.indexWhere(
+                              (c) => c['id'] == reply['id'],
+                            );
+                            return buildCommentTile(
+                              reply,
+                              replyIdx,
+                              isReply: true,
+                            );
+                          }).toList(),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),

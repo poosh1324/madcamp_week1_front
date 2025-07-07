@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'post_model.dart';
 import 'write_post_page.dart';
@@ -92,7 +91,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // 댓글 권한 체크
   bool _canEditComment(Comment comment) {
-
     if (currentUserId == null) return false;
     return currentUserId == comment.author;
   }
@@ -107,7 +105,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
       print('🔄 서버에서 댓글 로드 시도...');
       final loadedComments = await BoardApiService.getComments(currentPost.id);
       print('✅ 서버에서 댓글 ${loadedComments.length}개 로드 성공');
-      
+
       setState(() {
         comments = loadedComments;
         commentsLoading = false;
@@ -264,7 +262,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
           );
           if (parentIndex != -1) {
             final updatedParent = comments[parentIndex].updateReply(comment);
-            
+
             // 새로운 리스트를 만들어서 Flutter가 변화를 감지하도록 함
             comments = List.from(comments);
             comments[parentIndex] = updatedParent;
@@ -280,7 +278,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         _editingCommentId = null;
         _commentController.clear();
       });
-      
+
       _commentFocus.unfocus();
 
       if (mounted) {
@@ -331,7 +329,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
               (c) => c.id == comment.parentId,
             );
             if (parentIndex != -1) {
-              final updatedParent = comments[parentIndex].removeReply(comment.id);
+              final updatedParent = comments[parentIndex].removeReply(
+                comment.id,
+              );
               comments = List.from(comments);
               comments[parentIndex] = updatedParent;
             }
@@ -370,18 +370,24 @@ class _PostDetailPageState extends State<PostDetailPage> {
       print("🥹comment.parentId: ${comment.parentId}");
       print("🥹comment.likes: ${comment.likes}");
 
-      if (updatedComment == "like cancelled"){
+      if (updatedComment == "like cancelled") {
         comment = comment.copyWith(likes: comment.likes - 1);
-      } else if (updatedComment == "dislike cancelled"){
+      } else if (updatedComment == "dislike cancelled") {
         comment = comment.copyWith(dislikes: comment.dislikes - 1);
-      } else if (updatedComment == "liked comment"){
+      } else if (updatedComment == "liked comment") {
         comment = comment.copyWith(likes: comment.likes + 1);
-      } else if (updatedComment == "disliked comment"){
+      } else if (updatedComment == "disliked comment") {
         comment = comment.copyWith(dislikes: comment.dislikes + 1);
-      } else if (updatedComment == "Changed vote to dislike"){
-        comment = comment.copyWith(likes: comment.likes - 1, dislikes: comment.dislikes + 1);
-      } else if (updatedComment == "Changed vote to like"){
-        comment = comment.copyWith(likes: comment.likes + 1, dislikes: comment.dislikes - 1);
+      } else if (updatedComment == "Changed vote to dislike") {
+        comment = comment.copyWith(
+          likes: comment.likes - 1,
+          dislikes: comment.dislikes + 1,
+        );
+      } else if (updatedComment == "Changed vote to like") {
+        comment = comment.copyWith(
+          likes: comment.likes + 1,
+          dislikes: comment.dislikes - 1,
+        );
       }
       print("🥹comment.likes: ${comment.likes}");
 
@@ -395,7 +401,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
             final updatedParent = comments[parentIndex].updateReply(comment);
             comments = List.from(comments);
             comments[parentIndex] = updatedParent;
-            
           }
         } else {
           // 일반 댓글 좋아요 - 새 리스트 생성
@@ -468,14 +473,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
         postId: currentPost.id,
         isLike: isLike,
       );
-      
+
       print("게시글 좋아요 결과: $result");
-      
+
       // 결과에 따라 좋아요/싫어요 수 업데이트
       int newLikes = currentPost.likes;
       int newDislikes = currentPost.dislikes;
-      
-             if (result.contains("Post like removed")) {
+
+      if (result.contains("Post like removed")) {
         newLikes -= 1;
       } else if (result.contains("Post dislike removed")) {
         newDislikes -= 1;
@@ -490,17 +495,16 @@ class _PostDetailPageState extends State<PostDetailPage> {
         newLikes += 1;
         newDislikes -= 1;
       }
-      
+
       setState(() {
         currentPost = currentPost.copyWith(
           likes: newLikes,
           dislikes: newDislikes,
         );
       });
-      
+
       // 상위 위젯에 업데이트 알림
       widget.onPostUpdated(currentPost);
-      
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(
@@ -535,11 +539,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
     // null 체크 후 갱신
     if (result != null) {
-      setState((){
+      setState(() {
         currentPost = result;
       });
       widget.onPostUpdated(result);
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('게시글이 수정되었습니다.')));
     }
   }
 
@@ -727,15 +733,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     onTap: () => _likePost(true),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.thumb_up,
-                            size: 20,
-                            color: Colors.blue,
-                          ),
+                          Icon(Icons.thumb_up, size: 20, color: Colors.blue),
                           const SizedBox(width: 8),
                           Text(
                             '좋아요 ${currentPost.likes}',
@@ -750,26 +755,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ),
 
                   // 구분선
-                  Container(
-                    height: 24,
-                    width: 1,
-                    color: Colors.grey.shade300,
-                  ),
+                  Container(height: 24, width: 1, color: Colors.grey.shade300),
 
                   // 싫어요 버튼
                   InkWell(
                     onTap: () => _likePost(false),
                     borderRadius: BorderRadius.circular(8),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 8,
+                        horizontal: 16,
+                      ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(
-                            Icons.thumb_down,
-                            size: 20,
-                            color: Colors.red,
-                          ),
+                          Icon(Icons.thumb_down, size: 20, color: Colors.red),
                           const SizedBox(width: 8),
                           Text(
                             '싫어요 ${currentPost.dislikes}',

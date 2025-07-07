@@ -181,7 +181,7 @@ class GalleryApiService {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        print('checkIfLiked 응답 데이터: $data');
+        // print('checkIfLiked 응답 데이터: $data');
         return {
           'liked': data['liked'] == true,
           'likeCount': data['likes'] ?? 0,
