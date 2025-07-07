@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:test_madcamp/gallery/gallery_api_service.dart';
 import 'package:test_madcamp/gallery/gallery_comment_api_service.dart';
@@ -33,18 +34,24 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
 
   final TextEditingController _commentController = TextEditingController();
 
+  Timer? _fitUpdateTimer;
+
   @override
   void initState() {
     super.initState();
     _scrollController = ScrollController();
+    _fitUpdateTimer = null;
     _scrollController.addListener(() {
-      final shouldContain = _scrollController.offset > 100;
-      if ((_currentFit == BoxFit.cover && shouldContain) ||
-          (_currentFit == BoxFit.contain && !shouldContain)) {
-        setState(() {
-          _currentFit = shouldContain ? BoxFit.contain : BoxFit.cover;
-        });
-      }
+      _fitUpdateTimer?.cancel();
+      _fitUpdateTimer = Timer(const Duration(milliseconds: 200), () {
+        final shouldContain = _scrollController.offset > 100;
+        if ((_currentFit == BoxFit.cover && shouldContain) ||
+            (_currentFit == BoxFit.contain && !shouldContain)) {
+          setState(() {
+            _currentFit = shouldContain ? BoxFit.contain : BoxFit.cover;
+          });
+        }
+      });
     });
 
     _loadInitialLikeStatus();
@@ -68,16 +75,20 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
     try {
       final likeData = await GalleryApiService.checkIfLiked(widget.imageId);
       // print('🟢 likeData received: $likeData');
-      setState(() {
-        _isLiked = likeData['liked'];
-        _likeCount = likeData['likeCount'];
-      });
+      if (mounted) {
+        setState(() {
+          _isLiked = likeData['liked'];
+          _likeCount = likeData['likeCount'];
+        });
+      }
     } catch (e) {
       print('Failed to load like status: $e');
-      setState(() {
-        _isLiked = false;
-        _likeCount = 0;
-      });
+      if (mounted) {
+        setState(() {
+          _isLiked = false;
+          _likeCount = 0;
+        });
+      }
     }
   }
 
@@ -87,17 +98,19 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
         widget.imageId,
       );
       // Allow temporary keys for reply UI state and showReplies for top-level comments
-      setState(() {
-        _comments = comments.map<Map<String, dynamic>>((c) {
-          final isTopLevel = c['parent_id'] == null;
-          return {
-            ...c,
-            'showReplyField': c['showReplyField'] ?? false,
-            'replyText': c['replyText'] ?? '',
-            if (isTopLevel) 'showReplies': c['showReplies'] ?? false,
-          };
-        }).toList();
-      });
+      if (mounted) {
+        setState(() {
+          _comments = comments.map<Map<String, dynamic>>((c) {
+            final isTopLevel = c['parent_id'] == null;
+            return {
+              ...c,
+              'showReplyField': c['showReplyField'] ?? false,
+              'replyText': c['replyText'] ?? '',
+              if (isTopLevel) 'showReplies': c['showReplies'] ?? false,
+            };
+          }).toList();
+        });
+      }
     } catch (e) {
       print('Failed to load comments: $e');
     }
@@ -105,6 +118,7 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
 
   @override
   void dispose() {
+    _fitUpdateTimer?.cancel();
     _scrollController.dispose();
     _commentController.dispose();
     super.dispose();
@@ -208,6 +222,10 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
                       int idx, {
                       bool isReply = false,
                     }) {
+                      // Move the hasReplies declaration above the widget logic
+                      final hasReplies = _comments.any(
+                        (r) => r['parent_id'] == c['id'],
+                      );
                       return Padding(
                         padding: EdgeInsets.only(
                           left: isReply ? 24.0 : 0.0,
@@ -227,7 +245,7 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        c['username'] ?? 'Unknown',
+                                        c['image_unknown_number'] ?? 'Unknown',
                                         style: TextStyle(
                                           fontWeight: FontWeight.bold,
                                         ),
@@ -334,21 +352,22 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
                                     },
                                     child: Text("Reply"),
                                   ),
-                                  // Show/hide replies button
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() {
-                                        _comments[idx]['showReplies'] =
-                                            !(_comments[idx]['showReplies'] ??
-                                                false);
-                                      });
-                                    },
-                                    child: Text(
-                                      (c['showReplies'] ?? false)
-                                          ? "Hide replies"
-                                          : "Show replies",
+                                  // Show/hide replies button only if there are replies
+                                  if (hasReplies)
+                                    TextButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          _comments[idx]['showReplies'] =
+                                              !(_comments[idx]['showReplies'] ??
+                                                  false);
+                                        });
+                                      },
+                                      child: Text(
+                                        (c['showReplies'] ?? false)
+                                            ? "Hide replies"
+                                            : "Show replies",
+                                      ),
                                     ),
-                                  ),
                                 ],
                               ),
                             // Show reply field if toggled
@@ -450,10 +469,10 @@ class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
       fit: StackFit.expand,
       children: [
         AnimatedSwitcher(
-          duration: Duration(milliseconds: 300),
+          duration: Duration(milliseconds: 400),
           child: Image.network(
             imageUrl,
-            key: ValueKey(fit),
+            key: ValueKey('${imageUrl.hashCode}_${fit.toString()}'),
             fit: fit,
             width: double.infinity,
             height: double.infinity,

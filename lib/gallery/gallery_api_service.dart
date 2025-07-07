@@ -34,7 +34,7 @@ class GalleryApiService {
           final imageMap = {
             'imageId': item['imageId'],
             'imageUrl': item['imageUrl'],
-            'uploader': item['uploader'],
+            'uploader': item['author_nickname'],
             'uploadedAt': item['uploadedAt'],
             'likes': item['likes'],
           };
