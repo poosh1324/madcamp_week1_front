@@ -45,12 +45,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
     _loadComments(); // 댓글 목록 로드
 
     // 조회수 증가 (실제로는 서버에 요청)
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      setState(() {
-        currentPost = currentPost.copyWith(views: currentPost.views + 1);
-      });
-      widget.onPostUpdated(currentPost);
-    });
+    // WidgetsBinding.instance.addPostFrameCallback((_) {
+    //   setState(() {
+    //     currentPost = currentPost.copyWith(views: currentPost.views + 1);
+    //   });
+    //   widget.onPostUpdated(currentPost);
+    // });
   }
 
   @override
@@ -819,23 +819,23 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
 
-            // 권한이 없을 때 안내 메시지 (선택사항)
-            if (!isLoading && !_canEdit())
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '다른 사용자가 작성한 게시글입니다.',
-                  style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-                  textAlign: TextAlign.center,
-                ),
-              ),
+            // // 권한이 없을 때 안내 메시지 (선택사항)
+            // if (!isLoading && !_canEdit())
+            //   Container(
+            //     width: double.infinity,
+            //     padding: const EdgeInsets.all(16),
+            //     decoration: BoxDecoration(
+            //       color: Colors.grey.shade100,
+            //       borderRadius: BorderRadius.circular(8),
+            //     ),
+            //     child: Text(
+            //       '다른 사용자가 작성한 게시글입니다.',
+            //       style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
+            //       textAlign: TextAlign.center,
+            //     ),
+            //   ),
 
-            const SizedBox(height: 32),
+            // const SizedBox(height: 32),
 
             // 댓글 섹션
             Container(

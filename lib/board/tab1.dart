@@ -275,8 +275,9 @@ class _HomeTabState extends State<HomeTab> {
                 autofocus: true,
               )
             : const Text('익명게시판'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
         actions: [
           IconButton(
             icon: Icon(_isSearching ? Icons.close : Icons.search),
