@@ -422,4 +422,39 @@ class BoardApiService {
       throw Exception('네트워크 오류: $e');
     }
   }
+
+  // === 게시글 관련 추가 API 함수들 ===
+
+  // 15. 게시글 좋아요/싫어요
+  static Future<String> likePost({
+    required String postId,
+    required bool isLike, // true: 좋아요, false: 싫어요
+  }) async {
+    try {
+      final headers = await _getHeaders();
+      var body;
+      if (isLike) {
+        body = json.encode({'voteType': "like"});
+      } else {
+        body = json.encode({'voteType': "dislike"});
+      }
+
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/posts/$postId/vote'),
+        headers: headers,
+        body: body,
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        print("게시글 좋아요 응답: $data");
+        
+        return data['message'] ?? 'success';
+      } else {
+        throw Exception('게시글 좋아요/싫어요에 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
 }

@@ -469,6 +469,55 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return total;
   }
 
+  // 게시글 좋아요/싫어요
+  Future<void> _likePost(bool isLike) async {
+    try {
+      final result = await BoardApiService.likePost(
+        postId: currentPost.id,
+        isLike: isLike,
+      );
+      
+      print("게시글 좋아요 결과: $result");
+      
+      // 결과에 따라 좋아요/싫어요 수 업데이트
+      int newLikes = currentPost.likes;
+      int newDislikes = currentPost.dislikes;
+      
+             if (result.contains("Post like removed")) {
+        newLikes -= 1;
+      } else if (result.contains("Post dislike removed")) {
+        newDislikes -= 1;
+      } else if (result.contains("Post liked successfully")) {
+        newLikes += 1;
+      } else if (result.contains("Post disliked successfully")) {
+        newDislikes += 1;
+      } else if (result.contains("Post vote changed to dislike")) {
+        newLikes -= 1;
+        newDislikes += 1;
+      } else if (result.contains("Post vote changed to like")) {
+        newLikes += 1;
+        newDislikes -= 1;
+      }
+      
+      setState(() {
+        currentPost = currentPost.copyWith(
+          likes: newLikes,
+          dislikes: newDislikes,
+        );
+      });
+      
+      // 상위 위젯에 업데이트 알림
+      widget.onPostUpdated(currentPost);
+      
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('좋아요/싫어요 실패: ${e.toString()}')));
+      }
+    }
+  }
+
   // 댓글 ID로 댓글 찾기 (대댓글 포함)
   Comment _findCommentById(String commentId) {
     // 먼저 일반 댓글에서 찾기
@@ -669,6 +718,82 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
             ),
             const SizedBox(height: 24),
+
+            // 게시글 좋아요/싫어요 버튼
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade50,
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: Colors.grey.shade200),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  // 좋아요 버튼
+                  InkWell(
+                    onTap: () => _likePost(true),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.thumb_up,
+                            size: 20,
+                            color: Colors.blue,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '좋아요 ${currentPost.likes}',
+                            style: const TextStyle(
+                              color: Colors.blue,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // 구분선
+                  Container(
+                    height: 24,
+                    width: 1,
+                    color: Colors.grey.shade300,
+                  ),
+
+                  // 싫어요 버튼
+                  InkWell(
+                    onTap: () => _likePost(false),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.thumb_down,
+                            size: 20,
+                            color: Colors.red,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '싫어요 ${currentPost.dislikes}',
+                            style: const TextStyle(
+                              color: Colors.red,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
 
             // 액션 버튼들 (권한이 있을 때만 표시)
             if (!isLoading && _canEdit())
