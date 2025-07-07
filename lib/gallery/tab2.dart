@@ -24,13 +24,17 @@ class _GalleryTabState extends State<GalleryTab> {
     });
   }
 
-  void _onDivisionTap(String division) {
-    Navigator.push(
+  void _onDivisionTap(String division) async {
+    final result = await Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => GalleryDivisionPage(division: division),
       ),
     );
+
+    if (result == true) {
+      _reloadPreviews();
+    }
   }
 
   @override

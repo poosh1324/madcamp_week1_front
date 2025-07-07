@@ -22,14 +22,21 @@ class GalleryApiService {
   }
 
   // 분반별 이미지 목록 불러오기
-  static Future<List<String>> fetchImages(String division) async {
+  static Future<List<Map<String, dynamic>>> fetchImages(String division) async {
     try {
       final response = await http.get(
         Uri.parse('${ApiService.baseUrl}/gallery/$division'),
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => item.toString()).toList();
+        return data.map<Map<String, dynamic>>((item) {
+          return {
+            'imageId': item['imageId'],
+            'imageUrl': item['imageUrl'],
+            'uploader': item['uploader'],
+            'uploadedAt': item['uploadedAt'],
+          };
+        }).toList();
       } else {
         throw Exception('이미지 목록 불러오기 실패: ${response.statusCode}');
       }
@@ -75,7 +82,7 @@ class GalleryApiService {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
-        return data.map((item) => item.toString()).toList();
+        return data.map((item) => item['imageUrl'].toString()).toList();
       } else {
         throw Exception('이미지 프리뷰 불러오기 실패: ${response.statusCode}');
       }
@@ -99,5 +106,22 @@ class GalleryApiService {
     }
 
     return previews;
+  }
+
+  // 이미지 삭제
+  static Future<void> deleteImage(int imageId) async {
+    try {
+      final headers = await ApiService.getAuthHeaders();
+      final response = await http.delete(
+        Uri.parse('${ApiService.baseUrl}/gallery/$imageId'),
+        headers: headers,
+      );
+
+      if (response.statusCode != 200) {
+        throw Exception('이미지 삭제 실패: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('삭제 중 오류 발생: $e');
+    }
   }
 }

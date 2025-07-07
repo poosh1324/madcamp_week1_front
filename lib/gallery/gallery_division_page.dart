@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:test_madcamp/gallery/tab2.dart';
 import 'gallery_detail_page.dart';
 import 'gallery_api_service.dart';
 
@@ -12,19 +13,19 @@ class GalleryDivisionPage extends StatefulWidget {
 }
 
 class _GalleryDivisionPageState extends State<GalleryDivisionPage> {
-  late Future<List<String>> _imageUrls;
+  late Future<List<Map<String, dynamic>>> _imageDataList;
   late final String division;
 
   @override
   void initState() {
     super.initState();
     division = widget.division;
-    _imageUrls = GalleryApiService.fetchImages(division);
+    _imageDataList = GalleryApiService.fetchImages(widget.division);
   }
 
   void _reloadImages() {
     setState(() {
-      _imageUrls = GalleryApiService.fetchImages(division);
+      _imageDataList = GalleryApiService.fetchImages(division);
     });
   }
 
@@ -33,9 +34,17 @@ class _GalleryDivisionPageState extends State<GalleryDivisionPage> {
     return Stack(
       children: [
         Scaffold(
-          appBar: AppBar(title: Text('$division 분반 갤러리')),
-          body: FutureBuilder<List<String>>(
-            future: _imageUrls,
+          appBar: AppBar(
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back),
+              onPressed: () {
+                Navigator.pop(context, true); // 변화가 있었음을 리턴
+              },
+            ),
+            title: Text('$division 분반 갤러리'),
+          ),
+          body: FutureBuilder<List<Map<String, dynamic>>>(
+            future: _imageDataList,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
@@ -54,16 +63,30 @@ class _GalleryDivisionPageState extends State<GalleryDivisionPage> {
                     mainAxisSpacing: 4,
                   ),
                   itemBuilder: (context, index) {
-                    final imageUrl = images[index];
+                    final image = images[index];
+                    final imageId = image['imageId'];
+                    final imageUrl = image['imageUrl'];
+                    final imageUploader = image['uploader'];
+                    final imageUploadedAt = DateTime.tryParse(
+                      image['uploadedAt'],
+                    );
                     return GestureDetector(
-                      onTap: () {
-                        Navigator.push(
+                      onTap: () async {
+                        final result = await Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) =>
-                                GalleryDetailPage(imageUrl: imageUrl),
+                            builder: (context) => GalleryDetailPage(
+                              imageId: imageId,
+                              imageUrl: imageUrl,
+                              uploader: imageUploader,
+                              uploadedAt: imageUploadedAt,
+                              division: division,
+                            ),
                           ),
                         );
+                        if (result == true) {
+                          _reloadImages();
+                        }
                       },
                       child: Image.network(imageUrl, fit: BoxFit.cover),
                     );
