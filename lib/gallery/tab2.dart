@@ -79,7 +79,7 @@ class _GalleryTabState extends State<GalleryTab> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          'Division $division',
+                          '$division 분반',
                           style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
