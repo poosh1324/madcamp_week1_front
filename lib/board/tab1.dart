@@ -141,6 +141,7 @@ class _HomeTabState extends State<HomeTab> {
       context,
       MaterialPageRoute(builder: (context) => const WritePostPage()),
     );
+    await _loadPosts();
 
     if (result != null) {
       try {
@@ -225,7 +226,6 @@ class _HomeTabState extends State<HomeTab> {
   void _viewPost(Post post) async {
     try {
       final updatedPost= await BoardApiService.getPost(post.id);
-      print("🤢updatedPost: $updatedPost");
       if (mounted) {
         await Navigator.push<Post?>(
           context,

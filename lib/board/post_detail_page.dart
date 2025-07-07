@@ -172,9 +172,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
   // 댓글 또는 대댓글 작성
   Future<void> _writeComment() async {
     if (_commentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('댓글을 입력해주세요.')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('댓글을 입력해주세요.')));
+      }
       return;
     }
 
@@ -240,9 +242,11 @@ class _PostDetailPageState extends State<PostDetailPage> {
   // 댓글 수정
   Future<void> _editComment(Comment comment) async {
     if (_commentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('댓글을 입력해주세요.')));
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('댓글을 입력해주세요.')));
+      }
       return;
     }
 
@@ -585,6 +589,12 @@ class _PostDetailPageState extends State<PostDetailPage> {
         title: const Text('게시글'),
         backgroundColor: Colors.blue,
         foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
         actions: [
           // 권한 체크: 본인이 작성한 글일 때만 메뉴 표시
           if (!isLoading && _canEdit())
