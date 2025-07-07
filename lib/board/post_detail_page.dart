@@ -64,12 +64,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
   Future<void> _loadCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-
-      // final keys = prefs.getKeys();
-      // print("키스 걀긴다~~~");
-      // for (final key in keys){
-      //   print('$key');
-      // }
       currentUserId = prefs.getString('username');
 
       print('=== 권한 체크 ===');
@@ -98,9 +92,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
   // 댓글 권한 체크
   bool _canEditComment(Comment comment) {
-    print(
-      "댓글 권한 체크, currentUserId: $currentUserId, comment.author: ${comment.author}",
-    );
+
     if (currentUserId == null) return false;
     return currentUserId == comment.author;
   }
@@ -262,6 +254,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
         content: _commentController.text.trim(),
         parentId: comment.parentId,
       );
+      print('updatedcomment.content: ${updatedComment.content}');
+      comment = comment.copyWith(content: updatedComment.content);
       setState(() {
         if (comment.parentId != null) {
           // 대댓글 수정 - Flutter 감지를 위해 새 리스트 생성
@@ -269,8 +263,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
             (c) => c.id == comment.parentId,
           );
           if (parentIndex != -1) {
-            final updatedParent = comments[parentIndex].updateReply(updatedComment);
+            final updatedParent = comments[parentIndex].updateReply(comment);
+            
             // 새로운 리스트를 만들어서 Flutter가 변화를 감지하도록 함
+            comments = List.from(comments);
             comments[parentIndex] = updatedParent;
           }
         } else {

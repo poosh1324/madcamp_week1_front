@@ -85,8 +85,9 @@ class BoardApiService {
 
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        print("🤢data: $data");
+        print("겟포스트다!!!!!");
         return Post.fromJson(data);
+        // return Post.fromJson(data), commentsJson.map((json) => Comment.fromJson(json)).toList();
       } else {
         throw Exception('게시글을 가져오는데 실패했습니다: ${response.statusCode}');
       }
@@ -94,7 +95,27 @@ class BoardApiService {
       throw Exception('네트워크 오류: $e');
     }
   }
+  // 9. 특정 게시글의 댓글 목록 조회 (대댓글 포함)
+  static Future<List<Comment>> getComments(String postId) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/posts/$postId/comments'),
+        headers: headers,
+      );
 
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        final List<dynamic> commentsJson = data['comments'];
+        print("겟커멘트다!!!!!");
+        return commentsJson.map((json) => Comment.fromJson(json)).toList();
+      } else {
+        throw Exception('댓글 목록을 가져오는데 실패했습니다: ${response.statusCode}');
+      }
+    } catch (e) {
+      throw Exception('네트워크 오류: $e');
+    }
+  }
   // 3. 새 게시글 작성
   static Future<Post> createPost({
     required String title,
@@ -249,26 +270,7 @@ class BoardApiService {
 
   // === 댓글 관련 API 함수들 ===
 
-  // 9. 특정 게시글의 댓글 목록 조회 (대댓글 포함)
-  static Future<List<Comment>> getComments(String postId) async {
-    try {
-      final headers = await _getHeaders();
-      final response = await http.get(
-        Uri.parse('${ApiService.baseUrl}/posts/$postId'),
-        headers: headers,
-      );
 
-      if (response.statusCode == 200) {
-        final Map<String, dynamic> data = json.decode(response.body);
-        final List<dynamic> commentsJson = data['comments'];
-        return commentsJson.map((json) => Comment.fromJson(json)).toList();
-      } else {
-        throw Exception('댓글 목록을 가져오는데 실패했습니다: ${response.statusCode}');
-      }
-    } catch (e) {
-      throw Exception('네트워크 오류: $e');
-    }
-  }
 
   // 10. 댓글 작성
   static Future<Comment> createComment({
@@ -308,8 +310,7 @@ class BoardApiService {
     required String content,
     String? parentId,
   }) async {
-    print("😱commentId: $commentId");
-    print("😱content: $content");
+
     try {
       final headers = await _getHeaders();
       final body = json.encode({'content': content});
