@@ -6,8 +6,8 @@ class Comment {
   final String author;
   final String division;
   final DateTime createdAt;
-  final int likes;
-  final int dislikes;
+  int likes;
+  int dislikes;
   final List<Comment> replies;  // 대댓글 목록
 
   Comment({

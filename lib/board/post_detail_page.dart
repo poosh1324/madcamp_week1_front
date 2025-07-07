@@ -206,12 +206,14 @@ class _PostDetailPageState extends State<PostDetailPage> {
         );
 
         setState(() {
-          // 부모 댓글 찾아서 대댓글 추가
+          // 부모 댓글 찾아서 대댓글 추가 - Flutter 감지를 위해 새 리스트 생성
           final parentIndex = comments.indexWhere(
             (c) => c.id == _replyingToCommentId,
           );
           if (parentIndex != -1) {
-            comments[parentIndex] = comments[parentIndex].addReply(newReply);
+            final updatedParent = comments[parentIndex].addReply(newReply);
+            comments = List.from(comments);
+            comments[parentIndex] = updatedParent;
             _expandedReplies[_replyingToCommentId!] = true;
           }
           _commentController.clear();
@@ -226,7 +228,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
         );
 
         setState(() {
-          comments.add(newComment);
+          // 일반 댓글 추가 - 새 리스트 생성
+          comments = [...comments, newComment];
           _commentController.clear();
         });
       }
@@ -264,30 +267,31 @@ class _PostDetailPageState extends State<PostDetailPage> {
       final updatedComment = await BoardApiService.updateComment(
         commentId: comment.id,
         content: _commentController.text.trim(),
+        parentId: comment.parentId,
       );
-
       setState(() {
         if (comment.parentId != null) {
-          // 대댓글 수정
+          // 대댓글 수정 - Flutter 감지를 위해 새 리스트 생성
           final parentIndex = comments.indexWhere(
             (c) => c.id == comment.parentId,
           );
           if (parentIndex != -1) {
-            comments[parentIndex] = comments[parentIndex].updateReply(
-              updatedComment,
-            );
+            final updatedParent = comments[parentIndex].updateReply(updatedComment);
+            // 새로운 리스트를 만들어서 Flutter가 변화를 감지하도록 함
+            comments[parentIndex] = updatedParent;
           }
         } else {
-          // 일반 댓글 수정
+          // 일반 댓글 수정 - 일관성을 위해 새 리스트 생성
           final index = comments.indexWhere((c) => c.id == comment.id);
           if (index != -1) {
+            comments = List.from(comments);
             comments[index] = updatedComment;
           }
         }
         _editingCommentId = null;
         _commentController.clear();
       });
-
+      
       _commentFocus.unfocus();
 
       if (mounted) {
@@ -333,18 +337,18 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
         setState(() {
           if (comment.parentId != null) {
-            // 대댓글 삭제
+            // 대댓글 삭제 - Flutter 감지를 위해 새 리스트 생성
             final parentIndex = comments.indexWhere(
               (c) => c.id == comment.parentId,
             );
             if (parentIndex != -1) {
-              comments[parentIndex] = comments[parentIndex].removeReply(
-                comment.id,
-              );
+              final updatedParent = comments[parentIndex].removeReply(comment.id);
+              comments = List.from(comments);
+              comments[parentIndex] = updatedParent;
             }
           } else {
-            // 일반 댓글 삭제
-            comments.removeWhere((c) => c.id == comment.id);
+            // 일반 댓글 삭제 - 새 리스트 생성
+            comments = comments.where((c) => c.id != comment.id).toList();
           }
         });
 
@@ -374,23 +378,39 @@ class _PostDetailPageState extends State<PostDetailPage> {
         commentId: comment.id,
         isLike: isLike,
       );
-
+      print("😱updatedComment: $updatedComment");
+      if (updatedComment == "like cancelled"){
+        comment.likes -= 1;
+      } else if (updatedComment == "dislike cancelled"){
+        comment.dislikes -= 1;
+      } else if (updatedComment == "liked comment"){
+        comment.likes += 1;
+      } else if (updatedComment == "disliked comment"){
+        comment.dislikes += 1;
+      } else if (updatedComment == "Changed vote to dislike"){
+        comment.likes -= 1;
+        comment.dislikes += 1;
+      } else if (updatedComment == "Changed vote to like"){
+        comment.likes += 1;
+        comment.dislikes -= 1;
+      }
       setState(() {
         if (comment.parentId != null) {
-          // 대댓글 좋아요
+          // 대댓글 좋아요 - Flutter 감지를 위해 새 리스트 생성
           final parentIndex = comments.indexWhere(
             (c) => c.id == comment.parentId,
           );
           if (parentIndex != -1) {
-            comments[parentIndex] = comments[parentIndex].updateReply(
-              updatedComment,
-            );
+            final updatedParent = comments[parentIndex].updateReply(comment);
+            comments = List.from(comments);
+            comments[parentIndex] = updatedParent;
           }
         } else {
-          // 일반 댓글 좋아요
+          // 일반 댓글 좋아요 - 새 리스트 생성
           final index = comments.indexWhere((c) => c.id == comment.id);
           if (index != -1) {
-            comments[index] = updatedComment;
+            comments = List.from(comments);
+            comments[index] = comment;
           }
         }
       });

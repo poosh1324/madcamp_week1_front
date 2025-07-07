@@ -318,7 +318,10 @@ class BoardApiService {
   static Future<Comment> updateComment({
     required String commentId,
     required String content,
+    String? parentId,
   }) async {
+    print("😱commentId: $commentId");
+    print("😱content: $content");
     try {
       final headers = await _getHeaders();
       final body = json.encode({'content': content});
@@ -330,8 +333,12 @@ class BoardApiService {
       );
 
       if (response.statusCode == 200) {
+        print("😱response.body: ${response.body}");
         final Map<String, dynamic> data = json.decode(response.body);
-        return Comment.fromJson(data['comment']);
+        // 서버가 content를 포함하지 않으므로 수동으로 추가
+        data['content'] = content;
+        data['parentId'] = parentId;
+        return Comment.fromJson(data);
       } else {
         throw Exception('댓글 수정에 실패했습니다: ${response.statusCode}');
       }
@@ -358,23 +365,30 @@ class BoardApiService {
   }
 
   // 13. 댓글 좋아요/싫어요
-  static Future<Comment> likeComment({
+  static Future<String> likeComment({
     required String commentId,
     required bool isLike, // true: 좋아요, false: 싫어요
   }) async {
     try {
       final headers = await _getHeaders();
-      final body = json.encode({'isLike': isLike});
+      var body;
+      if (isLike) {
+        body = json.encode({'voteType': "like"});
+      } else {
+        body = json.encode({'voteType': "dislike"});
+      }
 
       final response = await http.post(
-        Uri.parse('${ApiService.baseUrl}/comments/$commentId/like'),
+        Uri.parse('${ApiService.baseUrl}/comments/$commentId/vote'),
         headers: headers,
         body: body,
       );
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 201 || response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
-        return Comment.fromJson(data['comment']);
+        print("😱data: $data");
+        
+        return data['message'];
       } else {
         throw Exception('댓글 좋아요/싫어요에 실패했습니다: ${response.statusCode}');
       }
