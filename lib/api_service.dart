@@ -11,6 +11,7 @@ class ApiService {
   // static const String baseUrl =
   //     'https://madcampweek1back-production.up.railway.app';
 
+
   // JSON 응답인지 확인하는 도우미 함수
   static bool _isJsonResponse(String responseBody) {
     try {
