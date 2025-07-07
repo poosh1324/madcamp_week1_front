@@ -29,13 +29,17 @@ class GalleryApiService {
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
+        print('받아온 이미지 데이터: $data');
         return data.map<Map<String, dynamic>>((item) {
-          return {
+          final imageMap = {
             'imageId': item['imageId'],
             'imageUrl': item['imageUrl'],
             'uploader': item['uploader'],
             'uploadedAt': item['uploadedAt'],
+            'likes': item['likes'],
           };
+          print('이미지 ID: ${item['imageId']}, 좋아요 수: ${item['likes']}');
+          return imageMap;
         }).toList();
       } else {
         throw Exception('이미지 목록 불러오기 실패: ${response.statusCode}');
@@ -126,6 +130,69 @@ class GalleryApiService {
     } catch (e) {
       print('삭제 중 오류 발생: $e');
       return false;
+    }
+  }
+
+  // 이미지 좋아요 요청
+  static Future<bool> likeImage(int imageId) async {
+    try {
+      final headers = await ApiService.getAuthHeaders();
+      final response = await http.post(
+        Uri.parse('${ApiService.baseUrl}/gallery/$imageId/like'),
+        headers: headers,
+      );
+      if (response.statusCode != 200) {
+        print('좋아요 실패: ${response.body}');
+        return false;
+      }
+      return true;
+    } catch (e) {
+      print('좋아요 중 오류 발생: $e');
+      return false;
+    }
+  }
+
+  // 이미지 좋아요 취소 요청
+  static Future<bool> unlikeImage(int imageId) async {
+    try {
+      final headers = await ApiService.getAuthHeaders();
+      final response = await http.delete(
+        Uri.parse('${ApiService.baseUrl}/gallery/$imageId/like'),
+        headers: headers,
+      );
+      if (response.statusCode != 200) {
+        print('좋아요 취소 실패: ${response.body}');
+        return false;
+      }
+      return true;
+    } catch (e) {
+      print('좋아요 취소 중 오류 발생: $e');
+      return false;
+    }
+  }
+
+  // 특정 이미지에 대해 사용자가 좋아요를 눌렀는지 확인하고 좋아요 수 반환
+  static Future<Map<String, dynamic>> checkIfLiked(int imageId) async {
+    try {
+      final headers = await ApiService.getAuthHeaders();
+      final response = await http.get(
+        Uri.parse('${ApiService.baseUrl}/gallery/$imageId/like'),
+        headers: headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        print('checkIfLiked 응답 데이터: $data');
+        return {
+          'liked': data['liked'] == true,
+          'likeCount': data['likes'] ?? 0,
+        };
+      } else {
+        print('좋아요 여부 확인 실패: ${response.body}');
+        return {'liked': false, 'likes': 0};
+      }
+    } catch (e) {
+      print('좋아요 여부 확인 중 오류 발생: $e');
+      return {'liked': false, 'likes': 0};
     }
   }
 }

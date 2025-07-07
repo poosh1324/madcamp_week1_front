@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:test_madcamp/gallery/tab2.dart';
 import 'gallery_detail_page.dart';
 import 'gallery_api_service.dart';
 

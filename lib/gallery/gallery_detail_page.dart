@@ -25,6 +25,9 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
   late ScrollController _scrollController;
   BoxFit _currentFit = BoxFit.cover;
 
+  late int _likeCount;
+  bool? _isLiked;
+
   @override
   void initState() {
     super.initState();
@@ -38,6 +41,25 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
         });
       }
     });
+
+    _loadInitialLikeStatus();
+  }
+
+  Future<void> _loadInitialLikeStatus() async {
+    try {
+      final likeData = await GalleryApiService.checkIfLiked(widget.imageId);
+      print('🟢 likeData received: $likeData');
+      setState(() {
+        _isLiked = likeData['liked'];
+        _likeCount = likeData['likeCount'];
+      });
+    } catch (e) {
+      print('Failed to load like status: $e');
+      setState(() {
+        _isLiked = false;
+        _likeCount = 0;
+      });
+    }
   }
 
   @override
@@ -46,8 +68,28 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
     super.dispose();
   }
 
+  Future<void> _handleLikeTap() async {
+    final newLikeState = !_isLiked!;
+    final success = newLikeState
+        ? await GalleryApiService.likeImage(widget.imageId)
+        : await GalleryApiService.unlikeImage(widget.imageId);
+
+    if (success) {
+      setState(() {
+        _isLiked = newLikeState;
+        _likeCount += _isLiked! ? 1 : -1;
+      });
+    } else {
+      // Optionally, show an error message
+      print('Failed to update like status');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    if (_isLiked == null) {
+      return Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
     final screenHeight = MediaQuery.of(context).size.height;
     return Scaffold(
       body: NestedScrollView(
@@ -64,7 +106,11 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
           ),
           SliverPersistentHeader(
             pinned: true,
-            delegate: _LikesHeaderDelegate(),
+            delegate: _LikesHeaderDelegate(
+              onTap: _handleLikeTap,
+              isLiked: _isLiked!,
+              likeCount: _likeCount,
+            ),
           ),
         ],
         body: SingleChildScrollView(
@@ -196,6 +242,16 @@ class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
 }
 
 class _LikesHeaderDelegate extends SliverPersistentHeaderDelegate {
+  final VoidCallback onTap;
+  final bool isLiked;
+  final int likeCount;
+
+  _LikesHeaderDelegate({
+    required this.onTap,
+    required this.isLiked,
+    required this.likeCount,
+  });
+
   @override
   Widget build(
     BuildContext context,
@@ -207,13 +263,13 @@ class _LikesHeaderDelegate extends SliverPersistentHeaderDelegate {
       child: Container(
         color: Colors.white,
         padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.favorite_border),
-            SizedBox(width: 8),
-            Text('123 likes', style: TextStyle(fontSize: 16)),
-          ],
+        child: LikesHeader(
+          imageId: (context.findAncestorStateOfType<_GalleryDetailPageState>()!)
+              .widget
+              .imageId,
+          likeCount: likeCount,
+          isLiked: isLiked,
+          onTap: onTap,
         ),
       ),
     );
@@ -225,6 +281,40 @@ class _LikesHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get minExtent => 48.0;
 
   @override
-  bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) =>
-      false;
+  bool shouldRebuild(covariant _LikesHeaderDelegate oldDelegate) {
+    return oldDelegate.isLiked != isLiked || oldDelegate.likeCount != likeCount;
+  }
+}
+
+class LikesHeader extends StatelessWidget {
+  final int imageId;
+  final int likeCount;
+  final bool isLiked;
+  final VoidCallback onTap;
+
+  const LikesHeader({
+    required this.imageId,
+    required this.likeCount,
+    required this.isLiked,
+    required this.onTap,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            isLiked ? Icons.favorite : Icons.favorite_border,
+            color: Colors.red,
+          ),
+          SizedBox(width: 8),
+          Text('$likeCount likes', style: TextStyle(fontSize: 16)),
+        ],
+      ),
+    );
+  }
 }
