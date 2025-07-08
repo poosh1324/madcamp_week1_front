@@ -91,15 +91,18 @@ class _GalleryTabState extends State<GalleryTab> {
                           child: ListView.builder(
                             scrollDirection: Axis.horizontal,
                             itemCount: urls.length,
-                            itemBuilder: (context, i) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Image.network(
-                                urls[i],
-                                width: 100,
-                                height: 100,
-                                fit: BoxFit.cover,
-                              ),
-                            ),
+                            itemBuilder: (context, i) {
+                              print('📸 Preview image URL: ${urls[i]}');
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 8),
+                                child: Image.network(
+                                  urls[i],
+                                  width: 100,
+                                  height: 100,
+                                  fit: BoxFit.cover,
+                                ),
+                              );
+                            },
                           ),
                         ),
                       ],
