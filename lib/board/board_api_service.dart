@@ -82,7 +82,7 @@ class BoardApiService {
         Uri.parse('${ApiService.baseUrl}/posts/$postId'),
         headers: headers,
       );
-
+      print("🔥response.body: ${response.body}");
       if (response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         print("data: $data");
