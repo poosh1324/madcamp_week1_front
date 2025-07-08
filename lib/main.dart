@@ -17,7 +17,9 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Login Flow',
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
+        scaffoldBackgroundColor: Colors.white,
+        textTheme: Typography.blackMountainView,
         useMaterial3: true,
       ),
       home: const LoginPage(),
