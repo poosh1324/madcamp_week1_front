@@ -46,7 +46,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
     _loadCurrentUser(); // 현재 사용자 정보 로드
     _loadComments(); // 댓글 목록 로드
-    
+
     //조회수 증가 (실제로는 서버에 요청)
     // WidgetsBinding.instance.addPostFrameCallback((_) {
     //   setState(() {

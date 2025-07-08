@@ -260,26 +260,53 @@ class _HomeTabState extends State<HomeTab> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
+        backgroundColor: Colors.white,
+        elevation: 0,
+        toolbarHeight: 60,
         title: _isSearching
-            ? TextField(
+            ? Container(
+                height: 36,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(18),
+                ),
+                child: TextField(
                 controller: _searchController,
                 decoration: const InputDecoration(
-                  hintText: '검색어를 입력하세요...',
+                    hintText: '검색',
                   border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.white70),
+                    contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    hintStyle: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    prefixIcon: Icon(
+                      Icons.search,
+                      color: Colors.grey,
+                      size: 20,
+                    ),
                 ),
-                style: const TextStyle(color: Colors.white),
+                  style: const TextStyle(fontSize: 14),
                 onChanged: _searchPosts,
                 autofocus: true,
+                ),
               )
-            : const Text('익명게시판'),
+            : const Text(
+                'MeveryTime',
+                style: TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 24,
+                  color: Colors.black,
+                ),
+              ),
         centerTitle: true,
-        // backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         actions: [
           IconButton(
-            icon: Icon(_isSearching ? Icons.close : Icons.search),
+            icon: Icon(_isSearching ? Icons.close : Icons.search, 
+                      color: Colors.black, size: 24),
             onPressed: () {
               setState(() {
                 if (_isSearching) {
@@ -292,70 +319,106 @@ class _HomeTabState extends State<HomeTab> {
               });
             },
           ),
-          IconButton(icon: const Icon(Icons.refresh), onPressed: _refreshPosts),
+          IconButton(
+            icon: const Icon(Icons.refresh, color: Colors.black, size: 24), 
+            onPressed: _refreshPosts
+          ),
         ],
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(
+            height: 1,
+            thickness: 0.5,
+            color: Color(0xFFDBDBDB),
+          ),
+        ),
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(
+              child: CircularProgressIndicator(
+                color: Colors.black,
+                strokeWidth: 2,
+              ),
+            )
           : _error != null
           ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  Icon(Icons.error_outline, size: 64, color: Colors.grey[400]),
                   const SizedBox(height: 16),
                   Text(
-                    '데이터를 불러오는데 실패했습니다',
-                    style: TextStyle(fontSize: 18, color: Colors.red),
+                    '게시글을 불러올 수 없습니다',
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: _refreshPosts,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
                     child: const Text('다시 시도'),
                   ),
                 ],
               ),
             )
           : _filteredPosts.isEmpty
-          ? const Center(
+          ? Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.article_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  Icon(Icons.article_outlined, size: 64, color: Colors.grey[400]),
+                  const SizedBox(height: 16),
                   Text(
                     '게시글이 없습니다',
-                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                    style: TextStyle(fontSize: 16, color: Colors.grey[600]),
                   ),
-                  SizedBox(height: 8),
+                  const SizedBox(height: 8),
                   Text(
                     '첫 번째 게시글을 작성해보세요!',
-                    style: TextStyle(color: Colors.grey),
+                    style: TextStyle(color: Colors.grey[500]),
                   ),
                 ],
               ),
             )
           : RefreshIndicator(
               onRefresh: _refreshPosts,
+              color: Colors.black,
               child: ListView.builder(
-                padding: const EdgeInsets.all(8),
+                physics: const AlwaysScrollableScrollPhysics(),
                 itemCount: _filteredPosts.length,
                 itemBuilder: (context, index) {
                   final post = _filteredPosts[index];
-                  return Card(
-                    margin: const EdgeInsets.symmetric(vertical: 4),
+                  return Container(
+                    margin: const EdgeInsets.only(bottom: 1),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFDBDBDB), width: 0.5),
+                      ),
+                    ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 16),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                      leading: CircleAvatar(
+                        radius: 20,
+                        backgroundColor: Colors.grey[600],
+                        child: Text(
+                          post.author.isNotEmpty ? post.author[0].toUpperCase() : 'U',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ),
                       title: Text(
                         post.title,
                         style: const TextStyle(
-                          fontWeight: FontWeight.bold,
+                          fontWeight: FontWeight.w600,
                           fontSize: 16,
                         ),
                         maxLines: 2,
@@ -365,54 +428,55 @@ class _HomeTabState extends State<HomeTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 8),
-                          // Text(
-                          //   post.content,
-                          //   maxLines: 2,
-                          //   overflow: TextOverflow.ellipsis,
-                          //   style: TextStyle(color: Colors.grey.shade600),
-                          // ),
-                          // const SizedBox(height: 8),
+                          Text(
+                            post.content,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 14,
+                              height: 1.4,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
                           Row(
                             children: [
-                              Icon(
-                                Icons.person,
-                                size: 14,
-                                color: Colors.grey.shade500,
-                              ),
-                              const SizedBox(width: 4),
                               Text(
                                 post.author,
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: Colors.grey[700],
                                 ),
                               ),
-                              const SizedBox(width: 12),
-                              Icon(
-                                Icons.access_time,
-                                size: 14,
-                                color: Colors.grey.shade500,
+                              const SizedBox(width: 8),
+                              Text(
+                                '·',
+                                style: TextStyle(
+                                  color: Colors.grey[500],
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                              const SizedBox(width: 4),
+                              const SizedBox(width: 8),
                               Text(
                                 post.timeAgo,
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
+                                  fontSize: 13,
+                                  color: Colors.grey[500],
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                              const Spacer(),
                               Icon(
                                 Icons.visibility,
-                                size: 14,
-                                color: Colors.grey.shade500,
+                                size: 16,
+                                color: Colors.grey[500],
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 '${post.views}',
                                 style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade500,
+                                  fontSize: 13,
+                                  color: Colors.grey[500],
                                 ),
                               ),
                             ],
@@ -421,20 +485,39 @@ class _HomeTabState extends State<HomeTab> {
                       ),
                       onTap: () => _viewPost(post),
                       trailing: Icon(
-                        Icons.arrow_forward_ios,
-                        size: 16,
-                        color: Colors.grey,
+                        Icons.chevron_right,
+                        size: 20,
+                        color: Colors.grey[400],
                       ),
                     ),
                   );
                 },
               ),
             ),
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: Container(
+        width: 56,
+        height: 56,
+        decoration: const BoxDecoration(
+          color: Colors.black,
+          shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 8,
+              offset: Offset(0, 4),
+            ),
+          ],
+        ),
+        child: IconButton(
         onPressed: _writeNewPost,
-        backgroundColor: Colors.black,
-        child: const Icon(Icons.add, color: Colors.white),
+          icon: const Icon(
+            Icons.add,
+            color: Colors.white,
+            size: 28,
+          ),
+        ),
       ),
     );
   }
 }
+

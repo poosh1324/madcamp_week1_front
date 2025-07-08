@@ -1,5 +1,5 @@
-import 'package:flutter/material.dart';
 
+import 'package:flutter/material.dart';
 import 'login/loginPage.dart';
 import 'board/tab1.dart';
 import 'gallery/tab2.dart';
@@ -34,61 +34,54 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage>
-    with SingleTickerProviderStateMixin {
-  late TabController _tabController;
+class _MyHomePageState extends State<MyHomePage> {
+  int _currentIndex = 0;
 
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(length: 3, vsync: this);
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  final List<Widget> _pages = [
+    const HomeTab(),
+    const GalleryTab(), 
+    const ProfileTab(),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        toolbarHeight: 45,  // AppBar 높이 조절 (기본값: 56)
-        title: const Text('MeveryTime'),
-        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        bottom: TabBar(
-          controller: _tabController,
-          indicatorSize: TabBarIndicatorSize.tab,  // 인디케이터 크기
-          labelPadding: EdgeInsets.symmetric(vertical: 3),  // 탭 패딩
-          tabs: const [
-            Tab(
-              icon: Icon(Icons.home, size: 24),  // 아이콘 크기
-              text: '홈',
-              height: 60,  // 탭 높이
-            ),
-            Tab(
-              icon: Icon(Icons.photo_library, size: 24),
-              text: '갤러리',
-              height: 60,
-            ),
-            Tab(
-              icon: Icon(Icons.person, size: 24),
-              text: '프로필', 
-              height: 60,
-            ),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: const [HomeTab(), GalleryTab(), ProfileTab()],
+      // appBar: AppBar(
+      //   toolbarHeight: 45,
+      //   title: const Text('MeveryTime'),
+      //   backgroundColor: Theme.of(context).colorScheme.onPrimary,
+      //   leading: IconButton(
+      //     icon: const Icon(Icons.arrow_back),
+      //     onPressed: () {
+      //       Navigator.pop(context);
+      //     },
+      //   ),
+      // ),
+      body: _pages[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) {
+          setState(() {
+            _currentIndex = index;
+          });
+        },
+        type: BottomNavigationBarType.fixed,
+        selectedItemColor: Colors.blue,
+        unselectedItemColor: Colors.grey,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: '홈',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.camera_alt_outlined),
+            label: '갤러리',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person),
+            label: '프로필',
+          ),
+        ],
       ),
     );
   }

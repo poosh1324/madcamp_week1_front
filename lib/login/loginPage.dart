@@ -74,9 +74,9 @@ class _LoginPageState extends State<LoginPage> {
           child: Column(
             children: [
               Expanded(
-                child: Column(
+            child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
+              children: [
                     // 로고
                     Container(
                       width: 120,
@@ -102,7 +102,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
 
                     // MeveryTime 텍스트
-                    const Text(
+                const Text(
                       'MeveryTime',
                       style: TextStyle(
                         fontSize: 32,
@@ -110,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                         color: Color(0xFF262626),
                         letterSpacing: -0.5,
                       ),
-                    ),
+                ),
                     const SizedBox(height: 48),
 
                     // 이메일 입력 필드
@@ -121,14 +121,14 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: TextField(
-                        controller: _emailController,
-                        enabled: !_isLoading,
-                        keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  enabled: !_isLoading,
+                  keyboardType: TextInputType.emailAddress,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF262626),
                         ),
-                        decoration: const InputDecoration(
+                  decoration: const InputDecoration(
                           hintText: '이메일',
                           hintStyle: TextStyle(
                             color: Color(0xFF8E8E8E),
@@ -140,8 +140,8 @@ class _LoginPageState extends State<LoginPage> {
                             vertical: 14,
                           ),
                         ),
-                      ),
-                    ),
+                  ),
+                ),
                     const SizedBox(height: 12),
 
                     // 비밀번호 입력 필드
@@ -152,14 +152,14 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: TextField(
-                        controller: _passwordController,
-                        enabled: !_isLoading,
-                        obscureText: true,
+                  controller: _passwordController,
+                  enabled: !_isLoading,
+                  obscureText: true,
                         style: const TextStyle(
                           fontSize: 14,
                           color: Color(0xFF262626),
                         ),
-                        decoration: const InputDecoration(
+                  decoration: const InputDecoration(
                           hintText: '비밀번호',
                           hintStyle: TextStyle(
                             color: Color(0xFF8E8E8E),
@@ -171,8 +171,8 @@ class _LoginPageState extends State<LoginPage> {
                             vertical: 14,
                           ),
                         ),
-                      ),
-                    ),
+                  ),
+                ),
                     const SizedBox(height: 20),
 
                     // 로그인 버튼
@@ -190,15 +190,15 @@ class _LoginPageState extends State<LoginPage> {
                           ),
                           disabledBackgroundColor: const Color(0xFF1877F2).withOpacity(0.3),
                         ),
-                        child: _isLoading
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                                 ),
-                              )
+                        )
                             : const Text(
                                 '로그인',
                                 style: TextStyle(
@@ -207,7 +207,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                       ),
-                    ),
+                ),
                     const SizedBox(height: 20),
 
                     // 비밀번호 찾기
@@ -285,7 +285,7 @@ class _LoginPageState extends State<LoginPage> {
                 ),
               ),
               const SizedBox(height: 20),
-            ],
+              ],
           ),
         ),
       ),
