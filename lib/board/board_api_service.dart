@@ -54,6 +54,7 @@ class BoardApiService {
           }
 
           final posts = postsJson.map((json) => Post.fromJson(json)).toList();
+          print("posts: ${posts[0].author}");
           
           return posts;
         } else {

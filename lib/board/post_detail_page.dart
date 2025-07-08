@@ -673,7 +673,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${currentPost.division}반 몰입러',
+                          '${currentPost.author}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,

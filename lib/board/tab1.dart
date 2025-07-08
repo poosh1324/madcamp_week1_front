@@ -267,9 +267,9 @@ class _HomeTabState extends State<HomeTab> {
                 decoration: const InputDecoration(
                   hintText: '검색어를 입력하세요...',
                   border: InputBorder.none,
-                  hintStyle: TextStyle(color: Colors.white70),
+                  hintStyle: TextStyle(color: Colors.black),
                 ),
-                style: const TextStyle(color: Colors.white),
+                style: const TextStyle(color: Colors.black),
                 onChanged: _searchPosts,
                 autofocus: true,
               )
@@ -381,7 +381,7 @@ class _HomeTabState extends State<HomeTab> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '익명',
+                                post.author,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade500,
