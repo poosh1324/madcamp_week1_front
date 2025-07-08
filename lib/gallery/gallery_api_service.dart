@@ -1,26 +1,9 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import '../api_service.dart'; // baseUrl 정의되어 있는 곳
 
 class GalleryApiService {
-  // 토큰 가져오기
-  static Future<String?> getToken() async {
-    final prefs = await SharedPreferences.getInstance();
-    print(prefs.getString('auth_token'));
-    return prefs.getString('auth_token');
-  }
-
-  // 공통 헤더 설정
-  static Future<Map<String, String>> _getHeaders() async {
-    final token = await getToken();
-    return {
-      'Content-Type': 'application/json',
-      if (token != null) 'Authorization': 'Bearer $token',
-    };
-  }
-
   // 이미지 목록 불러오기
   static Future<List<String>> fetchImageUrls() async {
     try {
@@ -41,7 +24,7 @@ class GalleryApiService {
   // 분반별 이미지 목록 불러오기
   static Future<List<Map<String, dynamic>>> fetchImages(String division) async {
     try {
-      final headers = await _getHeaders();
+      final headers = await ApiService.getAuthHeaders();
       final response = await http.get(
         Uri.parse('${ApiService.baseUrl}/gallery/$division'),
         headers: headers,
@@ -102,9 +85,11 @@ class GalleryApiService {
 
   // 분반별 이미지 프리뷰 불러오기
   static Future<List<String>> fetchImagePreviews(String division) async {
+    final headers = await ApiService.getAuthHeaders();
     try {
       final response = await http.get(
         Uri.parse('${ApiService.baseUrl}/gallery/$division'),
+        headers: headers,
       );
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
