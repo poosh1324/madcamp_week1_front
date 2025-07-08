@@ -66,6 +66,7 @@ class _GalleryDivisionPageState extends State<GalleryDivisionPage> {
                     final imageId = image['imageId'];
                     final imageUrl = image['imageUrl'];
                     final imageUploader = image['uploader'];
+                    final qualified = image['qualified'];
                     final imageUploadedAt = DateTime.tryParse(
                       image['uploadedAt'],
                     );
@@ -80,6 +81,7 @@ class _GalleryDivisionPageState extends State<GalleryDivisionPage> {
                               uploader: imageUploader,
                               uploadedAt: imageUploadedAt,
                               division: division,
+                              qualified: qualified,
                             ),
                           ),
                         );

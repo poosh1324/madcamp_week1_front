@@ -9,6 +9,7 @@ class GalleryDetailPage extends StatefulWidget {
   final String? uploader;
   final DateTime? uploadedAt;
   final String division;
+  final bool qualified;
 
   const GalleryDetailPage({
     Key? key,
@@ -17,6 +18,7 @@ class GalleryDetailPage extends StatefulWidget {
     this.uploader,
     this.uploadedAt,
     required this.division,
+    required this.qualified,
   }) : super(key: key);
 
   @override
@@ -107,6 +109,8 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
               'showReplyField': c['showReplyField'] ?? false,
               'replyText': c['replyText'] ?? '',
               if (isTopLevel) 'showReplies': c['showReplies'] ?? false,
+              // Default to false if not present
+              'qualified': c['qualified'] ?? false,
             };
           }).toList();
         });
@@ -156,6 +160,7 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
               imageUrl: widget.imageUrl,
               fit: _currentFit,
               expandedHeight: screenHeight,
+              qualified: widget.qualified,
             ),
             pinned: false,
             floating: false,
@@ -222,7 +227,6 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
                       int idx, {
                       bool isReply = false,
                     }) {
-                      // Move the hasReplies declaration above the widget logic
                       final hasReplies = _comments.any(
                         (r) => r['parent_id'] == c['id'],
                       );
@@ -255,90 +259,83 @@ class _GalleryDetailPageState extends State<GalleryDetailPage> {
                                     ],
                                   ),
                                 ),
-                                Row(
-                                  children: [
-                                    IconButton(
-                                      icon: Icon(Icons.edit, size: 18),
-                                      onPressed: () {
-                                        final controller =
-                                            TextEditingController(
-                                              text: c['content'],
-                                            );
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: Text("Edit Comment"),
-                                            content: TextField(
-                                              controller: controller,
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () =>
-                                                    Navigator.pop(context),
-                                                child: Text("Cancel"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () async {
-                                                  final newText = controller
-                                                      .text
-                                                      .trim();
-                                                  if (newText.isNotEmpty) {
-                                                    await GalleryCommentApiService.updateComment(
-                                                      c['id'],
-                                                      newText,
-                                                    );
-                                                    Navigator.pop(context);
-                                                    _loadComments();
-                                                  }
-                                                },
-                                                child: Text("Save"),
-                                              ),
-                                            ],
+                                // Conditionally render edit/delete buttons based on qualified
+                                if (c['qualified'] == true) ...[
+                                  IconButton(
+                                    icon: Icon(Icons.edit, size: 18),
+                                    onPressed: () {
+                                      final controller = TextEditingController(
+                                        text: c['content'],
+                                      );
+                                      showDialog(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text("Edit Comment"),
+                                          content: TextField(
+                                            controller: controller,
                                           ),
-                                        );
-                                      },
-                                    ),
-                                    IconButton(
-                                      icon: Icon(Icons.delete, size: 18),
-                                      onPressed: () async {
-                                        final confirm = await showDialog<bool>(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            title: Text("Delete Comment"),
-                                            content: Text(
-                                              "Are you sure you want to delete this comment?",
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context),
+                                              child: Text("Cancel"),
                                             ),
-                                            actions: [
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  false,
-                                                ),
-                                                child: Text("Cancel"),
-                                              ),
-                                              TextButton(
-                                                onPressed: () => Navigator.pop(
-                                                  context,
-                                                  true,
-                                                ),
-                                                child: Text("Delete"),
-                                              ),
-                                            ],
+                                            TextButton(
+                                              onPressed: () async {
+                                                final newText = controller.text
+                                                    .trim();
+                                                if (newText.isNotEmpty) {
+                                                  await GalleryCommentApiService.updateComment(
+                                                    c['id'],
+                                                    newText,
+                                                  );
+                                                  Navigator.pop(context);
+                                                  _loadComments();
+                                                }
+                                              },
+                                              child: Text("Save"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                    },
+                                  ),
+                                  IconButton(
+                                    icon: Icon(Icons.delete, size: 18),
+                                    onPressed: () async {
+                                      final confirm = await showDialog<bool>(
+                                        context: context,
+                                        builder: (context) => AlertDialog(
+                                          title: Text("Delete Comment"),
+                                          content: Text(
+                                            "Are you sure you want to delete this comment?",
                                           ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context, false),
+                                              child: Text("Cancel"),
+                                            ),
+                                            TextButton(
+                                              onPressed: () =>
+                                                  Navigator.pop(context, true),
+                                              child: Text("Delete"),
+                                            ),
+                                          ],
+                                        ),
+                                      );
+                                      if (confirm == true) {
+                                        await GalleryCommentApiService.deleteComment(
+                                          c['id'],
                                         );
-                                        if (confirm == true) {
-                                          await GalleryCommentApiService.deleteComment(
-                                            c['id'],
-                                          );
-                                          _loadComments();
-                                        }
-                                      },
-                                    ),
-                                  ],
-                                ),
+                                        _loadComments();
+                                      }
+                                    },
+                                  ),
+                                ],
                               ],
                             ),
-                            // Reply button (only for top-level comments, not replies)
+                            // Reply button (only for top-level comments, nㅋFt replies)
                             if (!isReply)
                               Row(
                                 children: [
@@ -452,11 +449,13 @@ class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
   final String imageUrl;
   final BoxFit fit;
   final double expandedHeight;
+  final bool qualified;
 
   _ImageHeaderDelegate({
     required this.imageUrl,
     required this.fit,
     required this.expandedHeight,
+    required this.qualified,
   });
 
   @override
@@ -491,44 +490,52 @@ class _ImageHeaderDelegate extends SliverPersistentHeaderDelegate {
           top: 40,
           right: 16,
           child: Builder(
-            builder: (context) => IconButton(
-              icon: Icon(Icons.delete, color: Colors.white.withAlpha(200)),
-              onPressed: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return AlertDialog(
-                      title: Text("Delete Image"),
-                      content: Text("정말로 이미지를 삭제하시겠습니까?"),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(false),
-                          child: Text("취소"),
-                        ),
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(true),
-                          child: Text("삭제"),
-                        ),
-                      ],
-                    );
-                  },
-                );
+            builder: (context) => qualified
+                ? IconButton(
+                    icon: Icon(
+                      Icons.delete,
+                      color: Colors.white.withAlpha(200),
+                    ),
+                    onPressed: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: Text("Delete Image"),
+                            content: Text("정말로 이미지를 삭제하시겠습니까?"),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(false),
+                                child: Text("취소"),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.of(context).pop(true),
+                                child: Text("삭제"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
 
-                if (confirm == true) {
-                  final success = await GalleryApiService.deleteImage(
-                    (context
-                            .findAncestorStateOfType<
-                              _GalleryDetailPageState
-                            >())!
-                        .widget
-                        .imageId,
-                  );
-                  if (success && context.mounted) {
-                    Navigator.pop(context, true);
-                  }
-                }
-              },
-            ),
+                      if (confirm == true) {
+                        final success = await GalleryApiService.deleteImage(
+                          (context
+                                  .findAncestorStateOfType<
+                                    _GalleryDetailPageState
+                                  >())!
+                              .widget
+                              .imageId,
+                        );
+                        if (success && context.mounted) {
+                          Navigator.pop(context, true);
+                        }
+                      }
+                    },
+                    // ),
+                  )
+                : const SizedBox(width: 10),
           ),
         ),
       ],
