@@ -127,6 +127,7 @@ class BoardApiService {
         'title': title,
         'content': content,
       });
+      
       final response = await http.post(
         Uri.parse('${ApiService.baseUrl}/posts/create'),
         headers: headers,

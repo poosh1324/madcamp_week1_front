@@ -9,7 +9,7 @@ class Comment {
   final int likes;
   final int dislikes;
   final List<Comment> replies;  // 대댓글 목록
-
+  final bool qualified;
   Comment({
     required this.id,
     required this.postId,
@@ -21,6 +21,7 @@ class Comment {
     this.likes = 0,
     this.dislikes = 0,
     this.replies = const [],
+    this.qualified = false,
   });
 
   // JSON에서 Comment 객체 생성
@@ -47,6 +48,7 @@ class Comment {
       replies: json['replies'] != null
           ? (json['replies'] as List).map((reply) => Comment.fromJson(reply)).toList()
           : [],
+      qualified: json['qualified'] ?? false,
     );
   }
 
@@ -63,6 +65,7 @@ class Comment {
       'likes': likes,
       'dislikes': dislikes,
       'replies': replies.map((reply) => reply.toJson()).toList(),
+      'qualified': qualified,
     };
   }
 
@@ -102,6 +105,7 @@ class Comment {
     int? likes,
     int? dislikes,
     List<Comment>? replies,
+    bool? qualified,
   }) {
     return Comment(
       id: id ?? this.id,
@@ -114,6 +118,7 @@ class Comment {
       likes: likes ?? this.likes,
       dislikes: dislikes ?? this.dislikes,
       replies: replies ?? this.replies,
+      qualified: qualified ?? this.qualified,
     );
   }
 

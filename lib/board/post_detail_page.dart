@@ -24,6 +24,7 @@ class PostDetailPage extends StatefulWidget {
 class _PostDetailPageState extends State<PostDetailPage> {
   late Post currentPost;
   String? currentUserId; // 현재 사용자 ID
+  String? currentUserToken; // 현재 사용자 토큰
   bool isLoading = true; // 로딩 상태
 
   // 댓글 관련 상태 변수들
@@ -60,16 +61,20 @@ class _PostDetailPageState extends State<PostDetailPage> {
     super.dispose();
   }
 
-  // 현재 사용자 ID 가져오기
+  // 현재 사용자 ID와 토큰 가져오기
   Future<void> _loadCurrentUser() async {
     try {
       final prefs = await SharedPreferences.getInstance();
       currentUserId = prefs.getString('username');
+      
+      // 토큰 가져와서 상태 변수에 저장
+      currentUserToken = await BoardApiService.getToken();
 
       print('=== 권한 체크 ===');
       print('현재 사용자: $currentUserId');
+      print('현재 토큰: $currentUserToken');
       print('작성자: ${currentPost.author}');
-      print('수정 권한: ${_canEdit()}');
+      print('수정 권한: ${currentPost.qualified}');
       print('================');
 
       setState(() {
@@ -83,18 +88,27 @@ class _PostDetailPageState extends State<PostDetailPage> {
     }
   }
 
-  // 수정/삭제 권한 체크
-  bool _canEdit() {
-    if (currentUserId == null) return false;
-    // 간단한 비교 (실제로는 authorId와 비교해야 함)
-    return currentUserId == currentPost.author;
-  }
+  // // 수정/삭제 권한 체크
+  // bool _canEdit() {
+  //   print("currentUserId: $currentUserId");
+  //   print("currentPost.author: ${currentPost.author}");
+  //   print("currentUserToken: $currentUserToken");
+    
+  //   // 토큰이 없으면 권한 없음
+  //   if (currentUserToken == null || currentUserId == null) return false;
+    
+  //   // 현재 사용자와 작성자 비교 (토큰이 아닌 사용자 ID로 비교)
+  //   return currentUserId == currentPost.author;
+  // }
+
+  // 현재 토큰 가져오기 (다른 함수에서 사용 가능)
+  String? get currentToken => currentUserToken;
 
   // 댓글 권한 체크
-  bool _canEditComment(Comment comment) {
-    if (currentUserId == null) return false;
-    return currentUserId == comment.author;
-  }
+  // bool _canEditComment(Comment comment) {
+  //   if (currentUserId == null) return false;
+  //   return currentUserId == comment.author;
+  // }
 
   // 댓글 목록 로드
   Future<void> _loadComments() async {
@@ -586,8 +600,8 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('게시글'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
+        backgroundColor: Theme.of(context).colorScheme.onPrimary,
+        foregroundColor: Colors.black,  // 검은색으로 변경
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -596,7 +610,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         ),
         actions: [
           // 권한 체크: 본인이 작성한 글일 때만 메뉴 표시
-          if (!isLoading && _canEdit())
+          if (!isLoading && currentPost.qualified)
             PopupMenuButton<String>(
               icon: const Icon(Icons.more_vert),
               onSelected: (value) {
@@ -639,12 +653,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // 제목
-            Text(
-              currentPost.title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
+
 
             // 작성자 정보
             Container(
@@ -673,7 +682,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '${currentPost.division}반 몰입러',
+                          '${currentPost.author}',
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -709,6 +718,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
+
+            // 제목
+            Text(
+              "${currentPost.title}",
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 24),
 
             // 내용
@@ -716,7 +732,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.grey.shade300),
+                // border: Border.all(color: Colors.grey.shade300),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Text(
@@ -797,7 +813,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             const SizedBox(height: 16),
 
             // 액션 버튼들 (권한이 있을 때만 표시)
-            if (!isLoading && _canEdit())
+            if (!isLoading && currentPost.qualified)
               Row(
                 children: [
                   Expanded(
@@ -1054,7 +1070,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     ),
                     const SizedBox(width: 8),
                     Text(
-                      '${comment.division}반 몰입러',
+                      '${comment.author}',
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const Spacer(),
@@ -1134,7 +1150,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     const Spacer(),
 
                     // 수정/삭제 버튼 (본인 댓글만)
-                    if (_canEditComment(comment))
+                    if (comment.qualified)
                       PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert, size: 16),
                         onSelected: (value) {
@@ -1250,7 +1266,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               ),
               const SizedBox(width: 8),
               Text(
-                '${reply.division}반 몰입러',
+                '${reply.author}',
                 style: const TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 12,
@@ -1309,7 +1325,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
               const Spacer(),
 
               // 수정/삭제 버튼 (본인 대댓글만)
-              if (_canEditComment(reply))
+              if (reply.qualified)
                 PopupMenuButton<String>(
                   icon: const Icon(Icons.more_vert, size: 14),
                   onSelected: (value) {

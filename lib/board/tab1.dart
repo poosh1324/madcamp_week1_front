@@ -275,7 +275,7 @@ class _HomeTabState extends State<HomeTab> {
               )
             : const Text('익명게시판'),
         centerTitle: true,
-        backgroundColor: Colors.white,
+        // backgroundColor: Colors.white,
         foregroundColor: Colors.black,
         actions: [
           IconButton(
@@ -351,7 +351,7 @@ class _HomeTabState extends State<HomeTab> {
                   return Card(
                     margin: const EdgeInsets.symmetric(vertical: 4),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.all(16),
+                      contentPadding: const EdgeInsets.only(left: 24, right: 24, top: 16, bottom: 16),
                       title: Text(
                         post.title,
                         style: const TextStyle(
@@ -365,13 +365,13 @@ class _HomeTabState extends State<HomeTab> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           const SizedBox(height: 8),
-                          Text(
-                            post.content,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(color: Colors.grey.shade600),
-                          ),
-                          const SizedBox(height: 8),
+                          // Text(
+                          //   post.content,
+                          //   maxLines: 2,
+                          //   overflow: TextOverflow.ellipsis,
+                          //   style: TextStyle(color: Colors.grey.shade600),
+                          // ),
+                          // const SizedBox(height: 8),
                           Row(
                             children: [
                               Icon(
@@ -381,7 +381,7 @@ class _HomeTabState extends State<HomeTab> {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '익명',
+                                post.author,
                                 style: TextStyle(
                                   fontSize: 12,
                                   color: Colors.grey.shade500,
@@ -423,7 +423,7 @@ class _HomeTabState extends State<HomeTab> {
                       trailing: Icon(
                         Icons.arrow_forward_ios,
                         size: 16,
-                        color: Colors.grey.shade400,
+                        color: Colors.grey,
                       ),
                     ),
                   );
@@ -432,7 +432,7 @@ class _HomeTabState extends State<HomeTab> {
             ),
       floatingActionButton: FloatingActionButton(
         onPressed: _writeNewPost,
-        backgroundColor: Colors.blue,
+        backgroundColor: Colors.black,
         child: const Icon(Icons.add, color: Colors.white),
       ),
     );
