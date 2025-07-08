@@ -1060,7 +1060,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       radius: 16,
                       backgroundColor: Colors.green,
                       child: Text(
-                        comment.division,
+                        comment.author.substring(0, 1),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
