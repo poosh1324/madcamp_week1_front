@@ -600,12 +600,21 @@ class _PostDetailPageState extends State<PostDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('게시글'),
-        backgroundColor: Theme.of(context).colorScheme.onPrimary,
-        foregroundColor: Colors.black,  // 검은색으로 변경
+        backgroundColor: Colors.white,
+        elevation: 0,
+        title: const Text(
+          'MeveryTime',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        centerTitle: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
             Navigator.pop(context);
           },
@@ -613,62 +622,62 @@ class _PostDetailPageState extends State<PostDetailPage> {
         actions: [
           // 권한 체크: 본인이 작성한 글일 때만 메뉴 표시
           if (!isLoading && currentPost.qualified)
-            PopupMenuButton<String>(
-              icon: const Icon(Icons.more_vert),
-              onSelected: (value) {
-                switch (value) {
-                  case 'edit':
-                    _editPost();
-                    break;
-                  case 'delete':
-                    _deletePost();
-                    break;
-                }
+            IconButton(
+              icon: const Icon(Icons.more_vert, color: Colors.black),
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  builder: (context) => Container(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        ListTile(
+                          leading: const Icon(Icons.edit),
+                          title: const Text('수정'),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _editPost();
+                          },
+                        ),
+                        ListTile(
+                          leading: const Icon(Icons.delete, color: Colors.red),
+                          title: const Text('삭제', style: TextStyle(color: Colors.red)),
+                          onTap: () {
+                            Navigator.pop(context);
+                            _deletePost();
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                );
               },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      Icon(Icons.edit),
-                      SizedBox(width: 8),
-                      Text('수정'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('삭제', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
             ),
         ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey.shade200,
+            height: 1,
+          ),
+        ),
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
-
-            // 작성자 정보
+            // 작성자 정보 - 인스타그램 스타일
             Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(8),
-              ),
+              padding: const EdgeInsets.all(16),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: Colors.blue,
+                    backgroundColor: Colors.grey[600],
                     child: Text(
                       currentPost.division.substring(0, 1),
                       style: const TextStyle(
@@ -686,15 +695,15 @@ class _PostDetailPageState extends State<PostDetailPage> {
                         Text(
                           '${currentPost.author}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 15,
                           ),
                         ),
                         Text(
                           currentPost.timeAgo,
-                          style: TextStyle(
-                            color: Colors.grey.shade600,
-                            fontSize: 14,
+                          style: const TextStyle(
+                            color: Colors.grey,
+                            fontSize: 12,
                           ),
                         ),
                       ],
@@ -702,17 +711,17 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   ),
                   Row(
                     children: [
-                      Icon(
+                      const Icon(
                         Icons.visibility,
                         size: 16,
-                        color: Colors.grey.shade600,
+                        color: Colors.grey,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         '${currentPost.views}',
-                        style: TextStyle(
-                          color: Colors.grey.shade600,
-                          fontSize: 14,
+                        style: const TextStyle(
+                          color: Colors.grey,
+                          fontSize: 12,
                         ),
                       ),
                     ],
@@ -720,89 +729,111 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
 
             // 제목
-            Text(
-              "${currentPost.title}",
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Text(
+                "${currentPost.title}",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 8),
 
             // 내용
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                // border: Border.all(color: Colors.grey.shade300),
-                borderRadius: BorderRadius.circular(8),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Text(
                 currentPost.content,
-                style: const TextStyle(fontSize: 16, height: 1.5),
+                style: const TextStyle(fontSize: 14, height: 1.4),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
-            // 게시글 좋아요/싫어요 버튼
-            Container(
-              padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade50,
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.grey.shade200),
-              ),
+            // 액션 버튼들 - 인스타그램 스타일
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   // 좋아요 버튼
                   InkWell(
                     onTap: () => _likePost(true),
-                    borderRadius: BorderRadius.circular(8),
+                    borderRadius: BorderRadius.circular(20),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
-                      ),
+                      padding: const EdgeInsets.all(8),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.thumb_up, size: 20, color: Colors.blue),
+                          Icon(
+                            Icons.favorite_border,
+                            size: 24,
+                            color: currentPost.likes > 0 ? Colors.red : Colors.black,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            '좋아요 ${currentPost.likes}',
+                            '${currentPost.likes}',
                             style: const TextStyle(
-                              color: Colors.blue,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
                             ),
                           ),
                         ],
                       ),
                     ),
                   ),
+                  const SizedBox(width: 16),
 
-                  // 구분선
-                  Container(height: 24, width: 1, color: Colors.grey.shade300),
-
-                  // 싫어요 버튼
+                  // 댓글 버튼
                   InkWell(
-                    onTap: () => _likePost(false),
-                    borderRadius: BorderRadius.circular(8),
+                    onTap: () {
+                      // 댓글 섹션으로 스크롤 (기존 기능 유지)
+                    },
+                    borderRadius: BorderRadius.circular(20),
                     child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        vertical: 8,
-                        horizontal: 16,
-                      ),
+                      padding: const EdgeInsets.all(8),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.thumb_down, size: 20, color: Colors.red),
+                          const Icon(
+                            Icons.chat_bubble_outline,
+                            size: 24,
+                            color: Colors.black,
+                          ),
                           const SizedBox(width: 8),
                           Text(
-                            '싫어요 ${currentPost.dislikes}',
+                            '$totalCommentsCount',
                             style: const TextStyle(
-                              color: Colors.red,
-                              fontWeight: FontWeight.w500,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+
+                  // 싫어요 버튼 (인스타그램에는 없지만 기능 유지)
+                  InkWell(
+                    onTap: () => _likePost(false),
+                    borderRadius: BorderRadius.circular(20),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8),
+                      child: Row(
+                        children: [
+                          Icon(
+                            Icons.heart_broken_outlined,
+                            size: 24,
+                            color: currentPost.dislikes > 0 ? Colors.blue : Colors.grey,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${currentPost.dislikes}',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                              color: Colors.grey,
                             ),
                           ),
                         ],
@@ -812,81 +843,20 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 16),
 
-            // 액션 버튼들 (권한이 있을 때만 표시)
-            if (!isLoading && currentPost.qualified)
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _editPost,
-                      icon: const Icon(Icons.edit),
-                      label: const Text('수정'),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      onPressed: _deletePost,
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      label: const Text(
-                        '삭제',
-                        style: TextStyle(color: Colors.red),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Colors.red),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-            // // 권한이 없을 때 안내 메시지 (선택사항)
-            // if (!isLoading && !_canEdit())
-            //   Container(
-            //     width: double.infinity,
-            //     padding: const EdgeInsets.all(16),
-            //     decoration: BoxDecoration(
-            //       color: Colors.grey.shade100,
-            //       borderRadius: BorderRadius.circular(8),
-            //     ),
-            //     child: Text(
-            //       '다른 사용자가 작성한 게시글입니다.',
-            //       style: TextStyle(color: Colors.grey.shade600, fontSize: 14),
-            //       textAlign: TextAlign.center,
-            //     ),
-            //   ),
-
-            // const SizedBox(height: 32),
+            // 구분선
+            Container(
+              margin: const EdgeInsets.symmetric(vertical: 16),
+              height: 1,
+              color: Colors.grey.shade200,
+            ),
 
             // 댓글 섹션
-            Container(
-              width: double.infinity,
-              decoration: BoxDecoration(
-                border: Border(top: BorderSide(color: Colors.grey.shade300)),
-              ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 16),
-
-                  // 댓글 제목
-                  Row(
-                    children: [
-                      const Icon(Icons.comment, size: 20, color: Colors.blue),
-                      const SizedBox(width: 8),
-                      Text(
-                        '댓글 $totalCommentsCount개',
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-
                   // 댓글 작성란
                   _buildCommentInput(),
                   const SizedBox(height: 16),
@@ -902,10 +872,10 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   else if (comments.isEmpty)
                     Container(
                       padding: const EdgeInsets.all(24),
-                      child: Text(
+                      child: const Text(
                         '첫 번째 댓글을 작성해보세요!',
                         style: TextStyle(
-                          color: Colors.grey.shade600,
+                          color: Colors.grey,
                           fontSize: 16,
                         ),
                         textAlign: TextAlign.center,
@@ -924,6 +894,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ],
               ),
             ),
+            const SizedBox(height: 16),
           ],
         ),
       ),
@@ -935,9 +906,9 @@ class _PostDetailPageState extends State<PostDetailPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade200),
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -945,20 +916,36 @@ class _PostDetailPageState extends State<PostDetailPage> {
           // 현재 상태 표시
           if (_editingCommentId != null)
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
                 color: Colors.orange.shade50,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.orange.shade200),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.edit, size: 16, color: Colors.orange),
+                  Icon(Icons.edit, size: 16, color: Colors.orange.shade700),
                   const SizedBox(width: 8),
-                  const Text('댓글 수정 중...'),
+                  Text(
+                    '댓글 수정 중...',
+                    style: TextStyle(
+                      color: Colors.orange.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const Spacer(),
-                  TextButton(
-                    onPressed: _cancelComment,
-                    child: const Text('취소'),
+                  InkWell(
+                    onTap: _cancelComment,
+                    child: Text(
+                      '취소',
+                      style: TextStyle(
+                        color: Colors.orange.shade700,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -966,68 +953,88 @@ class _PostDetailPageState extends State<PostDetailPage> {
 
           if (_replyingToCommentId != null)
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              margin: const EdgeInsets.only(bottom: 12),
               decoration: BoxDecoration(
                 color: Colors.blue.shade50,
-                borderRadius: BorderRadius.circular(4),
+                borderRadius: BorderRadius.circular(6),
+                border: Border.all(color: Colors.blue.shade200),
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.reply, size: 16, color: Colors.blue),
+                  Icon(Icons.reply, size: 16, color: Colors.blue.shade700),
                   const SizedBox(width: 8),
-                  const Text('답글 작성 중...'),
+                  Text(
+                    '답글 작성 중...',
+                    style: TextStyle(
+                      color: Colors.blue.shade700,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
                   const Spacer(),
-                  TextButton(
-                    onPressed: _cancelComment,
-                    child: const Text('취소'),
+                  InkWell(
+                    onTap: _cancelComment,
+                    child: Text(
+                      '취소',
+                      style: TextStyle(
+                        color: Colors.blue.shade700,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
                 ],
               ),
             ),
 
-          if (_editingCommentId != null || _replyingToCommentId != null)
-            const SizedBox(height: 12),
-
           // 댓글 입력 필드
-          TextField(
-            controller: _commentController,
-            focusNode: _commentFocus,
-            decoration: InputDecoration(
-              hintText: _replyingToCommentId != null
-                  ? '답글을 입력하세요...'
-                  : '댓글을 입력하세요...',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.all(16),
-            ),
-            maxLines: 3,
-            minLines: 1,
-          ),
-          const SizedBox(height: 12),
-
-          // 버튼들
           Row(
             children: [
-              const Spacer(),
-              if (_editingCommentId != null || _replyingToCommentId != null)
-                TextButton(onPressed: _cancelComment, child: const Text('취소')),
+              Expanded(
+                child: TextField(
+                  controller: _commentController,
+                  focusNode: _commentFocus,
+                  decoration: InputDecoration(
+                    hintText: _replyingToCommentId != null
+                        ? '답글을 입력하세요...'
+                        : '댓글을 입력하세요...',
+                    hintStyle: const TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                    border: InputBorder.none,
+                    contentPadding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 12,
+                    ),
+                  ),
+                  maxLines: null,
+                  minLines: 1,
+                  style: const TextStyle(fontSize: 14),
+                ),
+              ),
               const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: _editingCommentId != null
+              InkWell(
+                onTap: _editingCommentId != null
                     ? () => _editComment(_findCommentById(_editingCommentId!))
                     : _writeComment,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                ),
-                child: Text(
-                  _editingCommentId != null
-                      ? '수정'
-                      : (_replyingToCommentId != null ? '답글' : '댓글'),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[600],
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Text(
+                    _editingCommentId != null
+                        ? '수정'
+                        : (_replyingToCommentId != null ? '답글' : '게시'),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                 ),
               ),
             ],
@@ -1040,18 +1047,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
   // 댓글 아이템 위젯
   Widget _buildCommentItem(Comment comment) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: const EdgeInsets.only(bottom: 12),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 댓글 본문
           Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.grey.shade200),
-            ),
+            padding: const EdgeInsets.all(12),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1060,7 +1062,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: Colors.green,
+                      backgroundColor: Colors.grey[600],
                       child: Text(
                         comment.author.substring(0, 1),
                         style: const TextStyle(
@@ -1071,28 +1073,80 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       ),
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      '${comment.author}',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    const Spacer(),
-                    Text(
-                      comment.timeAgo,
-                      style: TextStyle(
-                        color: Colors.grey.shade600,
-                        fontSize: 12,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                '${comment.author}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Text(
+                                comment.timeAgo,
+                                style: const TextStyle(
+                                  color: Colors.grey,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            comment.content,
+                            style: const TextStyle(fontSize: 14, height: 1.3),
+                          ),
+                        ],
                       ),
                     ),
+                    // 수정/삭제 버튼 (본인 댓글만)
+                    if (comment.qualified)
+                      InkWell(
+                        onTap: () {
+                          showModalBottomSheet(
+                            context: context,
+                            shape: const RoundedRectangleBorder(
+                              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                            ),
+                            builder: (context) => Container(
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  ListTile(
+                                    leading: const Icon(Icons.edit),
+                                    title: const Text('수정'),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      _startEditComment(comment);
+                                    },
+                                  ),
+                                  ListTile(
+                                    leading: const Icon(Icons.delete, color: Colors.red),
+                                    title: const Text('삭제', style: TextStyle(color: Colors.red)),
+                                    onTap: () {
+                                      Navigator.pop(context);
+                                      _deleteComment(comment);
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Icon(Icons.more_vert, size: 16, color: Colors.grey),
+                        ),
+                      ),
                   ],
                 ),
-                const SizedBox(height: 12),
-
-                // 댓글 내용
-                Text(
-                  comment.content,
-                  style: const TextStyle(fontSize: 14, height: 1.4),
-                ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 8),
 
                 // 댓글 액션 버튼들
                 Row(
@@ -1100,94 +1154,62 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     // 좋아요 버튼
                     InkWell(
                       onTap: () => _likeComment(comment, true),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.thumb_up,
-                            size: 16,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${comment.likes}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              comment.likes > 0 ? Icons.thumb_up : Icons.thumb_up_outlined,
+                              size: 16,
+                              color: comment.likes > 0 ? Colors.blue : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${comment.likes}',
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
 
                     // 싫어요 버튼
                     InkWell(
                       onTap: () => _likeComment(comment, false),
-                      child: Row(
-                        children: [
-                          const Icon(
-                            Icons.thumb_down,
-                            size: 16,
-                            color: Colors.red,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${comment.dislikes}',
-                            style: const TextStyle(fontSize: 12),
-                          ),
-                        ],
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.thumb_down_outlined,
+                              size: 16,
+                              color: comment.dislikes > 0 ? Colors.blue : Colors.grey,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${comment.dislikes}',
+                              style: const TextStyle(fontSize: 12, color: Colors.grey),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 16),
 
                     // 답글 버튼
                     InkWell(
                       onTap: () => _startReplyComment(comment),
-                      child: const Row(
-                        children: [
-                          Icon(Icons.reply, size: 16, color: Colors.grey),
-                          SizedBox(width: 4),
-                          Text('답글', style: TextStyle(fontSize: 12)),
-                        ],
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                        child: Text(
+                          '답글 달기',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
                       ),
                     ),
-
-                    const Spacer(),
-
-                    // 수정/삭제 버튼 (본인 댓글만)
-                    if (comment.qualified)
-                      PopupMenuButton<String>(
-                        icon: const Icon(Icons.more_vert, size: 16),
-                        onSelected: (value) {
-                          switch (value) {
-                            case 'edit':
-                              _startEditComment(comment);
-                              break;
-                            case 'delete':
-                              _deleteComment(comment);
-                              break;
-                          }
-                        },
-                        itemBuilder: (context) => [
-                          const PopupMenuItem(
-                            value: 'edit',
-                            child: Row(
-                              children: [
-                                Icon(Icons.edit, size: 16),
-                                SizedBox(width: 8),
-                                Text('수정'),
-                              ],
-                            ),
-                          ),
-                          const PopupMenuItem(
-                            value: 'delete',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete, size: 16, color: Colors.red),
-                                SizedBox(width: 8),
-                                Text('삭제', style: TextStyle(color: Colors.red)),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
                   ],
                 ),
 
@@ -1197,24 +1219,13 @@ class _PostDetailPageState extends State<PostDetailPage> {
                     padding: const EdgeInsets.only(top: 8),
                     child: InkWell(
                       onTap: () => _toggleReplies(comment.id),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _expandedReplies[comment.id] == true
-                                ? Icons.expand_less
-                                : Icons.expand_more,
-                            size: 16,
-                            color: Colors.blue,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            '답글 ${comment.replies.length}개 ${_expandedReplies[comment.id] == true ? '접기' : '보기'}',
-                            style: const TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue,
-                            ),
-                          ),
-                        ],
+                      child: Text(
+                        '답글 ${comment.replies.length}개 ${_expandedReplies[comment.id] == true ? '숨기기' : '보기'}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.grey,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ),
                   ),
@@ -1226,7 +1237,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
           if (comment.replies.isNotEmpty &&
               _expandedReplies[comment.id] == true)
             Container(
-              margin: const EdgeInsets.only(left: 32, top: 8),
+              margin: const EdgeInsets.only(left: 40),
               child: Column(
                 children: comment.replies
                     .map((reply) => _buildReplyItem(reply))
@@ -1246,7 +1257,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -1267,26 +1277,75 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                '${reply.author}',
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          '${reply.author}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          reply.timeAgo,
+                          style: const TextStyle(color: Colors.grey, fontSize: 11),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      reply.content,
+                      style: const TextStyle(fontSize: 13, height: 1.3),
+                    ),
+                  ],
                 ),
               ),
-              const Spacer(),
-              Text(
-                reply.timeAgo,
-                style: TextStyle(color: Colors.grey.shade600, fontSize: 10),
-              ),
+              // 수정/삭제 버튼 (본인 대댓글만)
+              if (reply.qualified)
+                InkWell(
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      shape: const RoundedRectangleBorder(
+                        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+                      ),
+                      builder: (context) => Container(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              leading: const Icon(Icons.edit),
+                              title: const Text('수정'),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _startEditComment(reply);
+                              },
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.delete, color: Colors.red),
+                              title: const Text('삭제', style: TextStyle(color: Colors.red)),
+                              onTap: () {
+                                Navigator.pop(context);
+                                _deleteComment(reply);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                  child: const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: Icon(Icons.more_vert, size: 14, color: Colors.grey),
+                  ),
+                ),
             ],
-          ),
-          const SizedBox(height: 8),
-
-          // 대댓글 내용
-          Text(
-            reply.content,
-            style: const TextStyle(fontSize: 13, height: 1.4),
           ),
           const SizedBox(height: 8),
 
@@ -1296,73 +1355,46 @@ class _PostDetailPageState extends State<PostDetailPage> {
               // 좋아요 버튼
               InkWell(
                 onTap: () => _likeComment(reply, true),
-                child: Row(
-                  children: [
-                    const Icon(Icons.thumb_up, size: 14, color: Colors.blue),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${reply.likes}',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        reply.likes > 0 ? Icons.thumb_up : Icons.thumb_up_outlined,
+                        size: 14,
+                        color: reply.likes > 0 ? Colors.blue : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${reply.likes}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-              const SizedBox(width: 12),
 
               // 싫어요 버튼
               InkWell(
                 onTap: () => _likeComment(reply, false),
-                child: Row(
-                  children: [
-                    const Icon(Icons.thumb_down, size: 14, color: Colors.red),
-                    const SizedBox(width: 4),
-                    Text(
-                      '${reply.dislikes}',
-                      style: const TextStyle(fontSize: 11),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                  child: Row(
+                    children: [
+                      Icon(
+                        Icons.thumb_down_outlined,
+                        size: 14,
+                        color: reply.dislikes > 0 ? Colors.blue : Colors.grey,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        '${reply.dislikes}',
+                        style: const TextStyle(fontSize: 11, color: Colors.grey),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-
-              const Spacer(),
-
-              // 수정/삭제 버튼 (본인 대댓글만)
-              if (reply.qualified)
-                PopupMenuButton<String>(
-                  icon: const Icon(Icons.more_vert, size: 14),
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'edit':
-                        _startEditComment(reply);
-                        break;
-                      case 'delete':
-                        _deleteComment(reply);
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'edit',
-                      child: Row(
-                        children: [
-                          Icon(Icons.edit, size: 14),
-                          SizedBox(width: 8),
-                          Text('수정'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'delete',
-                      child: Row(
-                        children: [
-                          Icon(Icons.delete, size: 14, color: Colors.red),
-                          SizedBox(width: 8),
-                          Text('삭제', style: TextStyle(color: Colors.red)),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
             ],
           ),
         ],
