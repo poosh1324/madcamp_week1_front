@@ -27,3 +27,4 @@
 4. 마이페이지
 
 ## Download
+https://drive.google.com/file/d/1t93A9yIJQsFDloPDcFmlg_8d9S5iGtaQ/view?usp=sharing
