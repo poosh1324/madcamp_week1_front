@@ -8,6 +8,7 @@ class Post {
   final int dislikes;
   final String division;
   final int views;
+  final bool qualified;
 
   Post({
     required this.id,
@@ -19,6 +20,7 @@ class Post {
     required this.content,
     this.division = '',
     this.views = 0,
+    this.qualified = false,
   });
 
   // JSON에서 Post 객체 생성
@@ -33,6 +35,7 @@ class Post {
       division: json['division']?.toString() ?? '',
       content: json['content']?.toString() ?? '',
       views: json['views'] is int ? json['views'] : (int.tryParse(json['views']?.toString() ?? '0') ?? 0),
+      qualified: json['qualified'] ?? false,
     );
   }
 
@@ -45,6 +48,7 @@ class Post {
       'author': author,
       'createdAt': createdAt.toIso8601String(),
       'views': views,
+      'qualified': qualified,
     };
   }
 
@@ -74,6 +78,10 @@ class Post {
     String? author,
     DateTime? createdAt,
     int? views,
+    String? division,
+    int? likes,
+    int? dislikes,
+    bool? qualified,
   }) {
     return Post(
       id: id ?? this.id,
@@ -82,6 +90,10 @@ class Post {
       author: author ?? this.author,
       createdAt: createdAt ?? this.createdAt,
       views: views ?? this.views,
+      division: division ?? this.division,
+      likes: likes ?? this.likes,
+      dislikes: dislikes ?? this.dislikes,
+      qualified: qualified ?? this.qualified,
     );
   }
 } 

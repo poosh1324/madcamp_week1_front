@@ -7,7 +7,9 @@ class ApiService {
   // 백엔드 서버 URL (실제 서버 주소로 변경하세요)
   // static const String baseUrl = 'http://localhost:4000';
   //   static const String baseUrl = 'http://143.248.163.115:4000';
-  //   static const String baseUrl = 'http://192.249.29.78:4000';
+
+  // static const String baseUrl = 'http://192.249.29.93:4000';
+
   static const String baseUrl =
       'https://madcampweek1back-production.up.railway.app';
 
@@ -63,7 +65,7 @@ class ApiService {
       );
 
       final result = _handleResponse(response, '로그인');
-
+      print("🦁: ${result}");
       if (result['success'] && result['data'] != null) {
         // 토큰 저장
         if (result['data']['token'] != null) {
@@ -71,8 +73,8 @@ class ApiService {
         }
 
         // userId 저장
-        if (result['data']['userId'] != null) {
-          await saveUserId(result['data']['userId'].toString());
+        if (result['data']['username'] != null) {
+          await saveUserId(result['data']['username'].toString());
         }
       }
 
@@ -113,7 +115,6 @@ class ApiService {
   static Future<void> saveToken(String token) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('auth_token', token);
-
     // 🔍 디버깅: 토큰 저장 확인
     print("토큰: $token");
   }
@@ -131,6 +132,14 @@ class ApiService {
     }
 
     return token;
+  }
+
+  static Future<Map<String, String>> getAuthHeaders() async {
+    final token = await ApiService.getToken(); // 또는 따로 저장된 토큰 읽기
+    return {
+      'Content-Type': 'application/json',
+      if (token != null) 'Authorization': 'Bearer $token',
+    };
   }
 
   // 토큰 삭제 (로그아웃)
@@ -172,7 +181,7 @@ class ApiService {
   // userId 저장
   static Future<void> saveUserId(String userId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('user_id', userId);
+    await prefs.setString('username', userId);
 
     // 🔍 디버깅: userId 저장 확인
     print("👤 userId 저장됨: $userId");
@@ -181,7 +190,7 @@ class ApiService {
   // userId 가져오기
   static Future<String?> getUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    final userId = prefs.getString('user_id');
+    final userId = prefs.getString('username');
 
     // 🔍 디버깅: userId 조회 결과
     if (userId != null) {
@@ -196,7 +205,7 @@ class ApiService {
   // userId 삭제 (로그아웃)
   static Future<void> removeUserId() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('user_id');
+    await prefs.remove('username');
 
     // 🔍 디버깅: userId 삭제 확인
     print("🗑️ userId 삭제됨");
@@ -261,6 +270,58 @@ class ApiService {
         'message': '사용자 정보 조회 중 오류가 발생했습니다: $e',
         'data': null,
       };
+    }
+  }
+
+  // 내가 쓴 글 가져오기
+  static Future<List<Map<String, dynamic>>> fetchMyPosts() async {
+    final token = await getToken();
+    if (token == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/posts'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('❌ fetchMyPosts 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ fetchMyPosts 오류: $e');
+      return [];
+    }
+  }
+
+  // 내가 쓴 댓글 가져오기
+  static Future<List<Map<String, dynamic>>> fetchMyComments() async {
+    final token = await getToken();
+    if (token == null) {
+      return [];
+    }
+
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/users/me/comments'),
+        headers: {'Authorization': 'Bearer $token'},
+      );
+
+      if (response.statusCode == 200) {
+        final List<dynamic> data = jsonDecode(response.body);
+        return data.cast<Map<String, dynamic>>();
+      } else {
+        debugPrint('❌ fetchMyComments 실패: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('❌ fetchMyComments 오류: $e');
+      return [];
     }
   }
 }

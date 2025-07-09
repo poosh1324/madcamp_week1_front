@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'post_model.dart';
+import 'post_detail_page.dart';
+import 'board_api_service.dart';
 
 class WritePostPage extends StatefulWidget {
   final Post? post; // 수정할 게시글 (새 글 작성 시 null)
@@ -31,24 +33,55 @@ class _WritePostPageState extends State<WritePostPage> {
     super.dispose();
   }
 
-  void _savePost() {
-    if (_titleController.text.trim().isEmpty || _contentController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('제목과 내용을 입력해주세요!')),
-      );
+  void _savePost() async {
+    if (_titleController.text.trim().isEmpty ||
+        _contentController.text.trim().isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('제목과 내용을 입력해주세요!')));
       return;
     }
+    if (widget.post == null) {
+      try {
+        final createdPost = await BoardApiService.createPost(
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+        );
 
-    final newPost = Post(
-      id: widget.post?.id ?? DateTime.now().millisecondsSinceEpoch.toString(),
-      title: _titleController.text.trim(),
-      content: _contentController.text.trim(),
-      author: '사용자', // 실제로는 로그인한 사용자명
-      createdAt: widget.post?.createdAt ?? DateTime.now(),
-      views: widget.post?.views ?? 0,
-    );
+        if (!mounted) return;
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => PostDetailPage(
+              post: createdPost,
+              onPostUpdated: (_) {},
+              onPostDeleted: (_) {},
+            ),
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('게시글 작성 실패: $e')));
+      }
+    } else {
+      try {
+        final updatedPost = await BoardApiService.updatePost(
+          postId: widget.post!.id,
+          title: _titleController.text.trim(),
+          content: _contentController.text.trim(),
+        );
 
-    Navigator.pop(context, newPost);
+        // 수정 후
+        Navigator.pop(context, updatedPost);
+      } catch (e) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('게시글 수정 실패: $e')));
+      }
+    }
   }
 
   @override
@@ -61,9 +94,12 @@ class _WritePostPageState extends State<WritePostPage> {
         actions: [
           TextButton(
             onPressed: _savePost,
-            child: const Text(
-              '저장',
-              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+            child: Text(
+              widget.post == null ? '작성' : '수정',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -83,7 +119,7 @@ class _WritePostPageState extends State<WritePostPage> {
               maxLines: 1,
             ),
             const SizedBox(height: 16),
-            
+
             // 내용 입력
             Expanded(
               child: TextField(
@@ -104,4 +140,4 @@ class _WritePostPageState extends State<WritePostPage> {
       ),
     );
   }
-} 
+}

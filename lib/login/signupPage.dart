@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../api_service.dart';
-import 'loginPage.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -13,7 +12,8 @@ class _SignupPageState extends State<SignupPage> {
   final TextEditingController _nicknameController = TextEditingController();
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final TextEditingController _realnameController = TextEditingController();
   final TextEditingController _divisionController = TextEditingController();
   bool _isLoading = false;
@@ -27,24 +27,29 @@ class _SignupPageState extends State<SignupPage> {
     final division = _divisionController.text.trim();
 
     // 입력 유효성 검사
-    if (nickname.isEmpty || username.isEmpty || password.isEmpty || confirmPassword.isEmpty || realname.isEmpty || division.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('모든 필드를 입력하세요.')),
-      );
+    if (nickname.isEmpty ||
+        username.isEmpty ||
+        password.isEmpty ||
+        confirmPassword.isEmpty ||
+        realname.isEmpty ||
+        division.isEmpty) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('모든 필드를 입력하세요.')));
       return;
     }
 
     if (password != confirmPassword) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('비밀번호가 일치하지 않습니다.')));
       return;
     }
 
     if (password.length < 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('비밀번호는 6자 이상이어야 합니다.')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('비밀번호는 6자 이상이어야 합니다.')));
       return;
     }
 
@@ -54,27 +59,33 @@ class _SignupPageState extends State<SignupPage> {
 
     try {
       // 백엔드 API 호출
-      final result = await ApiService.register(nickname, username, password, realname, division);
+      final result = await ApiService.register(
+        nickname,
+        username,
+        password,
+        realname,
+        division,
+      );
 
       if (result['success']) {
         // 회원가입 성공
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
-        
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
+
         // 로그인 페이지로 이동
         Navigator.pop(context);
       } else {
         // 회원가입 실패
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result['message'])),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(result['message'])));
       }
     } catch (e) {
       // 예외 처리
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('오류가 발생했습니다: $e')),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('오류가 발생했습니다: $e')));
     } finally {
       setState(() {
         _isLoading = false;
@@ -85,9 +96,7 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('회원가입'),
-      ),
+      appBar: AppBar(title: const Text('회원가입')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Center(
@@ -161,19 +170,21 @@ class _SignupPageState extends State<SignupPage> {
                 const SizedBox(height: 24),
                 ElevatedButton(
                   onPressed: _isLoading ? null : _signup,
-                  child: _isLoading 
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Text('회원가입'),
+                  child: _isLoading
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Text('회원가입'),
                 ),
                 const SizedBox(height: 16),
                 TextButton(
-                  onPressed: _isLoading ? null : () {
-                    Navigator.pop(context);
-                  },
+                  onPressed: _isLoading
+                      ? null
+                      : () {
+                          Navigator.pop(context);
+                        },
                   child: const Text('이미 계정이 있으신가요? 로그인'),
                 ),
               ],
