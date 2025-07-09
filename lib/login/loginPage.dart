@@ -68,6 +68,7 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
+      resizeToAvoidBottomInset: false, // 키보드가 나타나도 화면 크기를 줄이지 않음
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 40.0),
@@ -129,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
                           color: Color(0xFF262626),
                         ),
                   decoration: const InputDecoration(
-                          hintText: '이메일',
+                          hintText: '아이디',
                           hintStyle: TextStyle(
                             color: Color(0xFF8E8E8E),
                             fontSize: 14,
