@@ -8,7 +8,7 @@ class ApiService {
   // static const String baseUrl = 'http://localhost:4000';
   //   static const String baseUrl = 'http://143.248.163.115:4000';
 
-  // static const String baseUrl = 'http://192.249.29.78:4000';
+  // static const String baseUrl = 'http://192.249.29.93:4000';
 
   static const String baseUrl =
       'https://madcampweek1back-production.up.railway.app';

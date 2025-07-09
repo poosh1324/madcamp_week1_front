@@ -221,7 +221,6 @@ class _PostDetailPageState extends State<PostDetailPage> {
         });
       } else {
         // 일반 댓글 작성
-        print('뭐에여? ${currentPost.id}');
         final newComment = await BoardApiService.createComment(
           postId: currentPost.id,
           content: _commentController.text.trim(),
@@ -677,7 +676,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                 children: [
                   CircleAvatar(
                     radius: 20,
-                    backgroundColor: Colors.grey[600],
+                    backgroundColor: Colors.black,
                     child: Text(
                       currentPost.division.substring(0, 1),
                       style: const TextStyle(
@@ -1062,7 +1061,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                   children: [
                     CircleAvatar(
                       radius: 16,
-                      backgroundColor: Colors.grey[600],
+                      backgroundColor: Colors.black,
                       child: Text(
                         comment.author.substring(0, 1),
                         style: const TextStyle(
@@ -1266,7 +1265,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
             children: [
               CircleAvatar(
                 radius: 12,
-                backgroundColor: Colors.purple,
+                backgroundColor: Colors.grey[600],
                 child: Text(
                   reply.division,
                   style: const TextStyle(

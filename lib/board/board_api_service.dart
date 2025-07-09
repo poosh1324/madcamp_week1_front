@@ -293,7 +293,11 @@ class BoardApiService {
 
       if (response.statusCode == 201) {
         final Map<String, dynamic> data = json.decode(response.body);
-
+        if (data['author'] == "pon09019") {
+          data['author'] = "관리자";
+        }else{
+          data['author'] = "${data['division']}반 몰입러";
+        }
         return Comment.fromJson(data);
       } else {
         throw Exception('댓글 작성에 실패했습니다: ${response.statusCode}');
