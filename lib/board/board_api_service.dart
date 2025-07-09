@@ -312,6 +312,7 @@ class BoardApiService {
     required String commentId,
     required String content,
     String? parentId,
+    String? division,
   }) async {
 
     try {
@@ -325,11 +326,12 @@ class BoardApiService {
       );
 
       if (response.statusCode == 200) {
-        print("😱response.body: ${response.body}");
         final Map<String, dynamic> data = json.decode(response.body);
         // 서버가 content를 포함하지 않으므로 수동으로 추가
         data['content'] = content;
         data['parentId'] = parentId;
+        data['division'] = division;
+        print("🤦🏻‍♂️댓글 수정!!!!! 수정아: ${data}");
         return Comment.fromJson(data);
       } else {
         throw Exception('댓글 수정에 실패했습니다: ${response.statusCode}');
@@ -375,7 +377,6 @@ class BoardApiService {
         headers: headers,
         body: body,
       );
-
       if (response.statusCode == 201 || response.statusCode == 200) {
         final Map<String, dynamic> data = json.decode(response.body);
         print("😱data: $data");

@@ -269,6 +269,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
         commentId: comment.id,
         content: _commentController.text.trim(),
         parentId: comment.parentId,
+        division: comment.division,
       );
       print('updatedcomment.content: ${updatedComment.content}');
       comment = comment.copyWith(content: updatedComment.content);
@@ -1063,7 +1064,7 @@ class _PostDetailPageState extends State<PostDetailPage> {
                       radius: 16,
                       backgroundColor: Colors.black,
                       child: Text(
-                        comment.author.substring(0, 1),
+                        comment.division.substring(0, 1),
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 12,
