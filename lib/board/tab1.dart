@@ -15,20 +15,39 @@ class _HomeTabState extends State<HomeTab> {
   List<Post> _posts = [];
   List<Post> _filteredPosts = [];
   final TextEditingController _searchController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+  
   bool _isSearching = false;
   bool _isLoading = true;
+  bool _isLoadingMore = false;
+  bool _hasMoreData = true;
   String? _error;
+  
+  int _currentPage = 1;
+  final int _pageSize = 10;
 
   @override
   void initState() {
     super.initState();
     _loadPosts();
+    _setupScrollListener();
   }
 
   @override
   void dispose() {
     _searchController.dispose();
+    _scrollController.dispose();
     super.dispose();
+  }
+
+  void _setupScrollListener() {
+    _scrollController.addListener(() {
+      // 스크롤이 거의 끝에 도달했을 때 (90% 지점)
+      if (_scrollController.position.pixels >= 
+          _scrollController.position.maxScrollExtent * 0.9) {
+        _loadMorePosts();
+      }
+    });
   }
 
   Future<void> _loadPosts() async {
@@ -37,16 +56,22 @@ class _HomeTabState extends State<HomeTab> {
       setState(() {
         _isLoading = true;
         _error = null;
+        _currentPage = 1;
+        _hasMoreData = true;
       });
 
-      print('🌐 API 호출 시작');
-      final posts = await BoardApiService.getPosts();
+      print('🌐 API 호출 시작 (페이지: $_currentPage)');
+      final posts = await BoardApiService.getPosts(
+        page: _currentPage,
+        limit: _pageSize,
+      );
       print('📊 받은 게시글 수: ${posts.length}');
 
       setState(() {
         _posts = posts;
         _filteredPosts = posts;
         _isLoading = false;
+        _hasMoreData = posts.length >= _pageSize;
       });
 
       print('✅ _loadPosts 완료');
@@ -60,6 +85,47 @@ class _HomeTabState extends State<HomeTab> {
       print('🔄 더미 데이터로 폴백');
       // 에러 발생 시 더미 데이터 사용 (개발 중에만)
       _loadDummyData();
+    }
+  }
+
+  Future<void> _loadMorePosts() async {
+    // 이미 로딩 중이거나 더 이상 데이터가 없으면 리턴
+    if (_isLoadingMore || !_hasMoreData || _isSearching) return;
+
+    try {
+      setState(() {
+        _isLoadingMore = true;
+      });
+
+      _currentPage++;
+      print('🌐 추가 데이터 로드 시작 (페이지: $_currentPage)');
+      
+      final newPosts = await BoardApiService.getPosts(
+        page: _currentPage,
+        limit: _pageSize,
+      );
+      print('📊 추가로 받은 게시글 수: ${newPosts.length}');
+
+      setState(() {
+        _posts.addAll(newPosts);
+        _filteredPosts = _posts;
+        _isLoadingMore = false;
+        _hasMoreData = newPosts.length >= _pageSize;
+      });
+
+      print('✅ 추가 데이터 로드 완료 (전체: ${_posts.length}개)');
+    } catch (e) {
+      print('❌ 추가 데이터 로드 에러: $e');
+      setState(() {
+        _isLoadingMore = false;
+        _currentPage--; // 실패했으니 페이지 번호 되돌리기
+      });
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('추가 데이터 로드 실패: $e')),
+        );
+      }
     }
   }
 
@@ -101,16 +167,22 @@ class _HomeTabState extends State<HomeTab> {
     // 조회수가 높은 순으로 정렬
     _posts.sort((a, b) => b.views.compareTo(a.views));
     _filteredPosts = _posts;
+    _hasMoreData = false; // 더미 데이터는 고정이므로 더 이상 데이터 없음
     print('✅ 더미 데이터 ${_posts.length}개 로드 완료');
   }
 
   Future<void> _searchPosts(String query) async {
     if (query.isEmpty) {
       setState(() {
+        _isSearching = false;
         _filteredPosts = _posts;
       });
       return;
     }
+
+    setState(() {
+      _isSearching = true;
+    });
 
     try {
       final searchResults = await BoardApiService.searchPosts(query: query);
@@ -125,8 +197,10 @@ class _HomeTabState extends State<HomeTab> {
   void _filterPosts(String query) {
     setState(() {
       if (query.isEmpty) {
+        _isSearching = false;
         _filteredPosts = _posts;
       } else {
+        _isSearching = true;
         _filteredPosts = _posts.where((post) {
           return post.title.toLowerCase().contains(query.toLowerCase()) ||
               post.content.toLowerCase().contains(query.toLowerCase()) ||
@@ -134,6 +208,10 @@ class _HomeTabState extends State<HomeTab> {
         }).toList();
       }
     });
+  }
+
+  Future<void> _refreshPosts() async {
+    await _loadPosts();
   }
 
   void _writeNewPost() async {
@@ -251,10 +329,6 @@ class _HomeTabState extends State<HomeTab> {
         );
       }
     }
-  }
-
-  Future<void> _refreshPosts() async {
-    await _loadPosts();
   }
 
   @override
@@ -389,9 +463,37 @@ class _HomeTabState extends State<HomeTab> {
               onRefresh: _refreshPosts,
               color: Colors.black,
               child: ListView.builder(
+                controller: _scrollController,
                 physics: const AlwaysScrollableScrollPhysics(),
-                itemCount: _filteredPosts.length,
+                itemCount: _filteredPosts.length + (_isLoadingMore || (!_hasMoreData && _filteredPosts.isNotEmpty && !_isSearching) ? 1 : 0),
                 itemBuilder: (context, index) {
+                  // 로딩 인디케이터 또는 끝 메시지 표시
+                  if (index == _filteredPosts.length) {
+                    if (_isLoadingMore) {
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        alignment: Alignment.center,
+                        child: const CircularProgressIndicator(
+                          color: Colors.black,
+                          strokeWidth: 2,
+                        ),
+                      );
+                    } else if (!_hasMoreData && _filteredPosts.isNotEmpty && !_isSearching) {
+                      return Container(
+                        padding: const EdgeInsets.all(16),
+                        alignment: Alignment.center,
+                        child: Text(
+                          '더 이상 게시글이 없습니다',
+                          style: TextStyle(
+                            color: Colors.grey[600],
+                            fontSize: 14,
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox.shrink();
+                  }
+                  
                   final post = _filteredPosts[index];
                   return Container(
                     margin: const EdgeInsets.only(bottom: 1),
